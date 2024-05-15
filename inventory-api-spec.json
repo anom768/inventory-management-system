@@ -558,7 +558,7 @@
         }
       }
     },
-    "/items/{itemID}": {
+    "/items/id/{itemID}": {
       "get": {
         "tags": ["Inventory Endpoint"],
         "security": [{"bearerAuth": []}],
@@ -722,13 +722,62 @@
         }
       }
     },
-    "/reports/stock": {
+    "/items/category/{itemCategory}": {
       "get": {
         "tags": ["Inventory Endpoint"],
         "security": [{"bearerAuth": []}],
         "summary": "",
         "description": "",
-        "parameters": [],
+        "parameters": [{
+          "$ref": "#/components/parameters/ItemCategory"
+        }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseDataItem"
+                },
+                "example": {
+                  "code": 200,
+                  "status": "status ok",
+                  "data": {
+                    "id": 1,
+                    "name": "RTX 3060",
+                    "category": "VGA",
+                    "quantity": 10,
+                    "price": 5000000.00,
+                    "description": "",
+                    "created_at": "2010-10-10 10:10:10",
+                    "updated_at": "2010-10-10 10:10:10"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/reports/stock/{totalStock}": {
+      "get": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "parameters": [{
+          "$ref": "#/components/parameters/TotalStock"
+        }],
         "responses": {
           "200": {
             "description": "",
@@ -746,12 +795,6 @@
                     "total_inventory_value": {
                       "type": "number",
                       "format": "float"
-                    },
-                    "low_stock_items_id": {
-                      "type": "array",
-                      "items": {
-                        "type": "number"
-                      }
                     },
                     "data": {
                       "type": "array",
@@ -1053,6 +1096,41 @@
           "item2": {
             "description": "Sample id item2",
             "value": 2
+          }
+        }
+      },
+      "ItemCategory": {
+        "name": "itemCategory",
+        "in": "path",
+        "required": true,
+        "description": "category for select item by category",
+        "schema": {
+          "type": "string",
+          "enum": ["VGA","PC","Monitor","RAM"]
+        },
+        "examples": {
+          "ram": {
+            "description": "Sample category for ram",
+            "value": "RAM"
+          },
+          "pc": {
+            "description": "Sample category for pc",
+            "value": "PC"
+          }
+        }
+      },
+      "TotalStock": {
+        "name": "totalStock",
+        "in": "path",
+        "required": true,
+        "description": "for filtering item in low stock",
+        "schema": {
+          "type": "number"
+        },
+        "examples": {
+          "item1": {
+            "description": "Sample total stock",
+            "value": 5
           }
         }
       }
