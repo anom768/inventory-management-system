@@ -1,0 +1,62 @@
+@startuml
+
+entity user {
+    *id : INTEGER <<key>>
+    --
+    *full_name : STRING
+    *username : STRING
+    *password : STRING
+    *role :  ENUM["user","admin"]
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+    deleted_at : TIMESTAMP
+}
+
+entity item {
+    *id : INTEGER <<key>>
+    --
+    *name : STRING
+    *category_id : INTEGER
+    *quantity : INTEGER
+    *price : FLOAT
+    description : TEXT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+    deleted_at : TIMESTAMP
+}
+
+entity category {
+    *id : INTEGER <<key>>
+    --
+    *name : STRING
+    *specification : TEXT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+    deleted_at : TIMESTAMP
+}
+
+entity activity {
+    *id : INTEGER <<key>>
+    --
+    *item_id : INTEGER
+    *action : ENUM["get","post","delete","put"]
+    *quantity_change : INTEGER
+    *timestamp : TIMESTAMP
+    *performed_by : STRING
+}
+
+entity session {
+  *id : INTEGER <<key>>
+  --
+  *user_id : INTEGER
+  *token : TEXT
+  created_at : TIMESTAMP
+  expires_at : TIMESTAMP
+}
+
+user ||--o{ activity : performed_by
+item ||--o{ activity : item_id
+item ||--o{ category : category_id
+user ||--o{ session  : user_id
+
+@enduml
