@@ -1,0 +1,1185 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Digital Inventory Management API",
+    "description": "The Digital Inventory Management API provides a comprehensive solution for managing the digital inventory within a company. It enables users to register, authenticate, and manage their accounts securely. Additionally, it allows administrators to oversee user management, including adding, updating, and deleting user accounts. The API facilitates the management of digital items by providing endpoints for adding, retrieving, updating, and deleting items from the inventory. Users can access reports to monitor stock levels and track activity within the system.\n\n    This API streamlines the process of managing digital assets such as software licenses, hardware components, and digital media within an organization. It offers a seamless interface for both users and administrators to efficiently handle inventory-related tasks, ensuring smooth operations and effective resource utilization.\n\n    Whether it's tracking the availability of software licenses across different departments or monitoring the status of hardware components in the IT infrastructure, the Digital Inventory Management API offers the necessary tools to streamline inventory management processes and enhance organizational productivity.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Bangkit Anom Sedhayu",
+      "email": "bangkitunom87@gmail.com",
+      "url": "https://github.com/anom768"
+    }
+  },
+  "servers": [
+    {
+      "description": "Main Server",
+      "url": "http://localhost:8080/api/v1"
+    }
+  ],
+  "paths": {
+    "/login": {
+      "post": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": ["username","password"]
+              },
+              "examples": {
+                "user1": {
+                  "value": {
+                    "username": "user1",
+                    "password": "rahasia"
+                  }
+                },
+                "user2": {
+                  "value": {
+                    "username": "user2",
+                    "password": "rahasia"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "example": {
+                  "code": 200,
+                  "status": "status ok",
+                  "message": "login successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "example": {
+                  "code": 400,
+                  "status": "status bad request",
+                  "message": "email and password required"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Status OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseData"
+                },
+                "example": {
+                  "code": 200,
+                  "status": "status ok",
+                  "data": [
+                    {
+                      "id": 1,
+                      "username": "user1",
+                      "full_name": "User 1",
+                      "role": "admin",
+                      "crated_at": "2010-10-10 10:10:10",
+                      "updated_at": "2010-10-10 10-10-10"
+                    },
+                    {
+                      "id": 2,
+                      "username": "user2",
+                      "full_name": "User 2",
+                      "role": "user",
+                      "crated_at": "2010-10-10 10:10:10",
+                      "updated_at": "2010-10-10 10-10-10"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "Create a new user",
+        "description": "Create a new user by admin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 20
+                  },
+                  "full_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 20
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["admin","user"],
+                    "default": "user"
+                  }
+                },
+                "required": ["username","full_name","password","role"]
+              },
+              "examples": {
+                "user1": {
+                  "value": {
+                    "username": "user1",
+                    "full_name": "User 1",
+                    "password": "rahasia",
+                    "role": "admin"
+                  }
+                },
+                "user2": {
+                  "value": {
+                    "username": "user2",
+                    "full_name": "User 2",
+                    "password": "rahasia",
+                    "role": "user"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Status Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "example": {
+                  "code": 201,
+                  "status": "status created",
+                  "message": "create a new user successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "examples": {
+                  "required": {
+                    "$ref": "#/components/examples/Required"
+                  },
+                  "duplicate": {
+                    "$ref": "#/components/examples/Duplicate"
+                  },
+                  "validate": {
+                    "$ref": "#/components/examples/Validate"
+                  },
+                  "undefined": {
+                    "$ref": "#/components/examples/Undefined"
+                  },
+                  "invalid": {
+                    "$ref": "#/components/examples/Invalid"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/users/{username}": {
+      "get": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "parameters": [{
+          "$ref": "#/components/parameters/Username"
+        }],
+        "responses": {
+          "200": {
+            "description": "get user by username",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ModelUser"
+                    }
+                  }
+                },
+                "examples": {
+                  "user1": {
+                    "$ref": "#/components/examples/User"
+                  },
+                  "user2": {
+                    "$ref": "#/components/examples/Admin"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "parameters": [{
+          "$ref": "#/components/parameters/Username"
+        }],
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "full_name": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["user", "admin"]
+                  }
+                },
+                "required": ["full_name","password","role"]
+              },
+              "examples": {
+                "user1": {
+                  "value": {
+                    "full_name": "New User 1",
+                    "password": "newpassword",
+                    "role": "user"
+                  }
+                },
+                "user2": {
+                  "value": {
+                    "full_name": "New User 2",
+                    "password": "newpassword",
+                    "role": "admin"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "example": {
+                  "code": 200,
+                  "status": "status ok",
+                  "message": "update user successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "examples": {
+                  "required": {
+                    "$ref": "#/components/examples/Required"
+                  },
+                  "invalid": {
+                    "$ref": "#/components/examples/Invalid"
+                  },
+                  "validate": {
+                    "$ref": "#/components/examples/Validate"
+                  },
+                  "undefined": {
+                    "$ref": "#/components/examples/Undefined"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "parameters": [{
+          "$ref": "#/components/parameters/Username"
+        }],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "example": {
+                  "code": 200,
+                  "status": "status ok",
+                  "message": "delete user successful"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          }
+        }
+      }
+    },
+    "/items": {
+      "get": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Status Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ModelItem"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "code": 200,
+                  "status": "status ok",
+                  "data": [
+                    {
+                      "id": 1,
+                      "name": "RTX 3060",
+                      "category": "VGA",
+                      "quantity": 10,
+                      "price": 5000000.00,
+                      "description": "",
+                      "created_at": "2010-10-10 10:10:10",
+                      "updated_at": "2010-10-10 10:10:10"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelItem"
+              },
+              "example": {
+                "id": 1,
+                "name": "RTX 3060",
+                "category": "VGA",
+                "quantity": 10,
+                "price": 5000000.00,
+                "description": "",
+                "created_at": "2010-10-10 10:10:10",
+                "updated_at": "2010-10-10 10:10:10"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Status Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "example": {
+                  "code": 201,
+                  "status": "status created",
+                  "message": "create item successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "examples": {
+                  "validate": {
+                    "$ref": "#/components/examples/Validate"
+                  },
+                  "invalid": {
+                    "$ref": "#/components/examples/Invalid"
+                  },
+                  "duplicate": {
+                    "$ref": "#/components/examples/Duplicate"
+                  },
+                  "required": {
+                    "$ref": "#/components/examples/Required"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/items/{itemID}": {
+      "get": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "parameters": [{
+          "$ref": "#/components/parameters/ItemID"
+        }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseDataItem"
+                },
+                "example": {
+                  "code": 200,
+                  "status": "status ok",
+                  "data": {
+                    "id": 1,
+                    "name": "RTX 3060",
+                    "category": "VGA",
+                    "quantity": 10,
+                    "price": 5000000.00,
+                    "description": "",
+                    "created_at": "2010-10-10 10:10:10",
+                    "updated_at": "2010-10-10 10:10:10"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "parameters": [{
+          "$ref": "#/components/parameters/ItemID"
+        }
+        ],
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelItem"
+              },
+              "example": {
+                "id": 1,
+                "name": "RTX 3060",
+                "category": "VGA",
+                "quantity": 10,
+                "price": 5000000.00,
+                "description": "",
+                "created_at": "2010-10-10 10:10:10",
+                "updated_at": "2010-10-10 10:10:10"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "example": {
+                  "code": 200,
+                  "status": "status ok",
+                  "message": "update item success"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "examples": {
+                  "required": {
+                    "$ref": "#/components/examples/Required"
+                  },
+                  "invalid": {
+                    "$ref": "#/components/examples/Invalid"
+                  },
+                  "validate": {
+                    "$ref": "#/components/examples/Validate"
+                  },
+                  "undefined": {
+                    "$ref": "#/components/examples/Undefined"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ItemID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelResponseMessage"
+                },
+                "example": {
+                  "code": 200,
+                  "status": "status ok",
+                  "message": "delete item success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/reports/stock": {
+      "get": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total_item": {
+                      "type": "number"
+                    },
+                    "total_quantity": {
+                      "type": "number"
+                    },
+                    "total_inventory_value": {
+                      "type": "number",
+                      "format": "float"
+                    },
+                    "low_stock_items_id": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ModelItem"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "totalItems": 2,
+                  "totalQuantity": 35,
+                  "totalInventoryValue": 3500.00,
+                  "lowStockItems": [1],
+                  "data": [
+                    {
+                      "item_id": 1,
+                      "name": "CPU",
+                      "category": "Hardware",
+                      "quantity": 10,
+                      "price": 300.00,
+                      "description": "Intel Core i7"
+                    },
+                    {
+                      "item_id": 2,
+                      "name": "RAM",
+                      "category": "Hardware",
+                      "quantity": 25,
+                      "price": 100.00,
+                      "description": "8GB DDR4"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/401"
+          }
+        }
+      }
+    },
+    "/reports/activity": {
+      "get": {
+        "tags": ["Inventory Endpoint"],
+        "security": [{"bearerAuth": []}],
+        "summary": "",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number"
+                        },
+                        "item_id": {
+                          "type": "number"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "action": {
+                          "type": "string",
+                          "format": "http method"
+                        },
+                        "quantity_changes": {
+                          "type": "number"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "timestamp"
+                        },
+                        "performed_by": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "code": 200,
+                  "status": "status ok",
+                  "data": [
+                    {
+                      "id": 1,
+                      "item_id": 1,
+                      "name": "CPU",
+                      "action": "POST",
+                      "quantity_change": 5,
+                      "timestamp": "2024-05-01T12:00:00Z",
+                      "performed_by": "admin1"
+                    },
+                    {
+                      "id": 2,
+                      "item_id": 2,
+                      "name": "RAM",
+                      "action": "PUT",
+                      "quantity_change": 10,
+                      "timestamp": "2024-05-02T14:00:00Z",
+                      "performed_by": "admin2"
+                    },
+                    {
+                      "id": 3,
+                      "item_id": 1,
+                      "name": "CPU",
+                      "action": "DELETE",
+                      "quantity_change": -5,
+                      "timestamp": "2024-05-03T10:00:00Z",
+                      "performed_by": "admin1"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "description": "Authentication for Digital Inventory Management API",
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ModelUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "username": {
+            "type": "string"
+          },
+          "full_name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "timestamp"
+          }
+        }
+      },
+      "ModelItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "uniqueItems": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["cpu","ram","pc","monitor","vga"]
+          },
+          "quantity": {
+            "type": "number",
+            "default": 0
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "default": 0
+          },
+          "description": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "timestamp"
+          }
+        },
+        "required": ["id","name","category","quantity","price"]
+      },
+      "ModelResponseMessage": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ModelResponseData": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelUser"
+            }
+          }
+        }
+      },
+      "ModelResponseDataItem": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelItem"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "Username": {
+        "name": "username",
+        "in": "path",
+        "required": true,
+        "description": "username for select, update or delete",
+        "schema": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 20
+        },
+        "examples": {
+          "user1": {
+            "description": "Sample username for user1",
+            "value": "user1"
+          },
+          "user2": {
+            "description": "Sample for user2",
+            "value": "user2"
+          }
+        }
+      },
+      "ItemID": {
+        "name": "itemID",
+        "in": "path",
+        "required": true,
+        "description": "item id for select, update or delete",
+        "schema": {
+          "type": "number"
+        },
+        "examples": {
+          "item1": {
+            "description": "Sample id for item1",
+            "value": 1
+          },
+          "item2": {
+            "description": "Sample id item2",
+            "value": 2
+          }
+        }
+      }
+    },
+    "examples": {
+      "User": {
+        "value": {
+          "code": "200",
+          "status": "status ok",
+          "data": {
+            "id": "1",
+            "username": "user1",
+            "full_name": "User 1",
+            "role": "user",
+            "created_at": "2010-10-10 10:10:10",
+            "updated_at": "2010-10-10 10:10:10"
+          }
+        }
+      },
+      "Admin": {
+        "value": {
+          "code": "200",
+          "status": "status ok",
+          "data": {
+            "id": "2",
+            "username": "user2",
+            "full_name": "User 2",
+            "role": "admin",
+            "created_at": "2010-10-10 10:10:10",
+            "updated_at": "2010-10-10 10:10:10"
+          }
+        }
+      },
+      "Item": {
+        "value": {
+          "id": 1,
+          "name": "RTX 3060",
+          "category": "VGA",
+          "quantity": 10,
+          "price": 5000000.00,
+          "description": "",
+          "created_at": "2010-10-10 10:10:10",
+          "updated_at": "2010-10-10 10:10:10"
+        }
+      },
+      "Duplicate": {
+        "value": {
+          "code": 401,
+          "error": "status bad request",
+          "message": "duplicate entry"
+        }
+      },
+      "Invalid": {
+        "value": {
+          "code": 400,
+          "status": "status bad request",
+          "message": "invalid body request"
+        }
+      },
+      "Validate": {
+        "value": {
+          "code": 401,
+          "error": "status bad request",
+          "message": "validation error"
+        }
+      },
+      "Undefined": {
+        "value": {
+          "code": 401,
+          "error": "status bad request",
+          "message": "undefined"
+        }
+      },
+      "Required": {
+        "value": {
+          "code": 401,
+          "error": "status bad request",
+          "message": "field is required"
+        }
+      }
+    },
+    "responses": {
+      "401": {
+        "description": "Status Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ModelResponseMessage"
+            },
+            "example": {
+              "code": 401,
+              "status": "status unauthorized",
+              "message": ""
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Status not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ModelResponseMessage"
+            },
+            "example": {
+              "code": 404,
+              "status": "status not found",
+              "message": "not found"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Status Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ModelResponseMessage"
+            },
+            "example": {
+              "code": 500,
+              "status": "status internal server error",
+              "message": ""
+            }
+          }
+        }
+      }
+    }
+  }
+}
