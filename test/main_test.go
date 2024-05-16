@@ -10,6 +10,7 @@ import (
 
 var _ = Describe("Digital Inventory Management API", func() {
 	var userRepository repository.UserRepository
+	var categoryRepository repository.CategoryRepository
 
 	db := app.NewDB()
 	credential := model.Credential{
@@ -24,19 +25,27 @@ var _ = Describe("Digital Inventory Management API", func() {
 	Expect(err).ShouldNot(HaveOccurred())
 
 	userRepository = repository.NewUserRepository(connection)
+	categoryRepository = repository.NewCategoryRepository(connection)
 
 	BeforeEach(func() {
-		//err = connection.Migrator().DropTable("users")
+		err = connection.Migrator().DropTable("users", "categories")
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err := connection.AutoMigrate(&model.Users{})
+		err := connection.AutoMigrate(&model.Users{}, &model.Categories{})
 		Expect(err).ShouldNot(HaveOccurred())
 
 		err = db.Reset(connection, "users")
+		err = db.Reset(connection, "categories")
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
 	Describe("Repository", func() {
+
+		/*
+			########################################################################################
+											USER REPOSITORY
+			########################################################################################
+		*/
 		Describe("User Repository", func() {
 			When("add new user to users table in database postgres", func() {
 				It("should save data user to users table in database postgres", func() {
@@ -152,6 +161,114 @@ var _ = Describe("Digital Inventory Management API", func() {
 					Expect(result).To(Equal(model.Users{}))
 
 					err = db.Reset(connection, "users")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+		})
+
+		/*
+			########################################################################################
+											CATEGORY REPOSITORY
+			########################################################################################
+		*/
+		Describe("Category Repository", func() {
+			When("add new category to categories table in database postgres", func() {
+				It("should save data category to categories table in database postgres", func() {
+					_, err := categoryRepository.Add(model.Categories{
+						Name:          "VGA",
+						Specification: "RTX-3060, RAM 4 GB",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					err = db.Reset(connection, "categories")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("get category by id is success", func() {
+				It("should return data category", func() {
+					category, err := categoryRepository.Add(model.Categories{
+						Name:          "VGA",
+						Specification: "RTX-3060, RAM 4 GB",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					result, err := categoryRepository.GetByID(1)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(result.ID).To(Equal(uint(1)))
+					Expect(result.Name).To(Equal(category.Name))
+					Expect(result.Specification).To(Equal(category.Specification))
+
+					err = db.Reset(connection, "categories")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("get all data categories table in database postgres", func() {
+				It("should return all data categories", func() {
+					_, err := categoryRepository.Add(model.Categories{
+						Name:          "VGA",
+						Specification: "RTX-3060, RAM 4 GB",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					_, err = categoryRepository.Add(model.Categories{
+						Name:          "Monitor",
+						Specification: "14 in Ajhua",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					results, err := categoryRepository.GetAll()
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(results).Should(HaveLen(2))
+
+					err = db.Reset(connection, "categories")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("update category data to categories table in database postgres", func() {
+				It("should save new data category", func() {
+					_, err := categoryRepository.Add(model.Categories{
+						Name:          "VGA",
+						Specification: "RTX-3060, RAM 4 GB",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					newCategory, err := categoryRepository.GetByID(1)
+					Expect(err).ShouldNot(HaveOccurred())
+
+					newCategory.Name = "CPU"
+					newCategory.Specification = "4 core"
+					_, err = categoryRepository.Update(newCategory)
+					Expect(err).ShouldNot(HaveOccurred())
+
+					result, err := categoryRepository.GetByID(1)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(result.Name).To(Equal(newCategory.Name))
+					Expect(result.Specification).To(Equal(newCategory.Specification))
+
+					err = db.Reset(connection, "categories")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("delete category data by id to categories table in database postgres", func() {
+				It("should soft delete data category by id", func() {
+					_, err := categoryRepository.Add(model.Categories{
+						Name:          "VGA",
+						Specification: "RTX-3060, RAM 4 GB",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					err = categoryRepository.Delete(1)
+					Expect(err).ShouldNot(HaveOccurred())
+
+					result, err := categoryRepository.GetByID(1)
+					Expect(err).Should(HaveOccurred())
+					Expect(result).To(Equal(model.Categories{}))
+
+					err = db.Reset(connection, "categories")
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
