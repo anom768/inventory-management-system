@@ -11,6 +11,7 @@ import (
 var _ = Describe("Digital Inventory Management API", func() {
 	var userRepository repository.UserRepository
 	var categoryRepository repository.CategoryRepository
+	var itemRepository repository.ItemRepository
 
 	db := app.NewDB()
 	credential := model.Credential{
@@ -26,16 +27,18 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 	userRepository = repository.NewUserRepository(connection)
 	categoryRepository = repository.NewCategoryRepository(connection)
+	itemRepository = repository.NewItemRepository(connection)
 
 	BeforeEach(func() {
-		err = connection.Migrator().DropTable("users", "categories")
+		err = connection.Migrator().DropTable("users", "categories", "items")
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err := connection.AutoMigrate(&model.Users{}, &model.Categories{})
+		err := connection.AutoMigrate(&model.Users{}, &model.Categories{}, &model.Items{})
 		Expect(err).ShouldNot(HaveOccurred())
 
 		err = db.Reset(connection, "users")
 		err = db.Reset(connection, "categories")
+		err = db.Reset(connection, "items")
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
@@ -269,6 +272,171 @@ var _ = Describe("Digital Inventory Management API", func() {
 					Expect(result).To(Equal(model.Categories{}))
 
 					err = db.Reset(connection, "categories")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+		})
+
+		/*
+			########################################################################################
+											ITEM REPOSITORY
+			########################################################################################
+		*/
+		Describe("Item Repository", func() {
+			When("add new item to items table in database postgres", func() {
+				It("should save data item to items table in database postgres", func() {
+					_, err := itemRepository.Add(model.Items{
+						Name:        "VGA",
+						CategoryID:  1,
+						Quantity:    10,
+						Price:       5000000.00,
+						Description: "",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					err = db.Reset(connection, "items")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("get item by item id is success", func() {
+				It("should return data item", func() {
+					item, err := itemRepository.Add(model.Items{
+						Name:        "VGA",
+						CategoryID:  1,
+						Quantity:    10,
+						Price:       5000000.00,
+						Description: "",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					result, err := itemRepository.GetByItemID(1)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(result.ID).To(Equal(uint(1)))
+					Expect(result.Name).To(Equal(item.Name))
+					Expect(result.CategoryID).To(Equal(item.CategoryID))
+					Expect(result.Quantity).To(Equal(item.Quantity))
+					Expect(result.Price).To(Equal(item.Price))
+					Expect(result.Description).To(Equal(item.Description))
+
+					err = db.Reset(connection, "items")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("get all data items table in database postgres", func() {
+				It("should return all data items", func() {
+					_, err := itemRepository.Add(model.Items{
+						Name:        "VGA",
+						CategoryID:  1,
+						Quantity:    10,
+						Price:       5000000.00,
+						Description: "",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					_, err = itemRepository.Add(model.Items{
+						Name:        "VGA2",
+						CategoryID:  1,
+						Quantity:    10,
+						Price:       5000000.00,
+						Description: "",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					results, err := itemRepository.GetAll()
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(results).Should(HaveLen(2))
+
+					err = db.Reset(connection, "items")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("update item data to items table in database postgres", func() {
+				It("should save new data item", func() {
+					_, err := itemRepository.Add(model.Items{
+						Name:        "VGA2",
+						CategoryID:  1,
+						Quantity:    10,
+						Price:       5000000.00,
+						Description: "",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					newItem, err := itemRepository.GetByItemID(1)
+					Expect(err).ShouldNot(HaveOccurred())
+
+					newItem.Name = "VGA"
+					newItem.CategoryID = 2
+					newItem.Quantity = 5
+					newItem.Price = 4500000.00
+					newItem.Description = "desc"
+					_, err = itemRepository.Update(newItem)
+					Expect(err).ShouldNot(HaveOccurred())
+
+					result, err := itemRepository.GetByItemID(1)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(result.ID).To(Equal(uint(1)))
+					Expect(result.Name).To(Equal(newItem.Name))
+					Expect(result.CategoryID).To(Equal(newItem.CategoryID))
+					Expect(result.Quantity).To(Equal(newItem.Quantity))
+					Expect(result.Price).To(Equal(newItem.Price))
+					Expect(result.Description).To(Equal(newItem.Description))
+
+					err = db.Reset(connection, "items")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("delete item data by item id to items table in database postgres", func() {
+				It("should soft delete data item by id", func() {
+					_, err := itemRepository.Add(model.Items{
+						Name:        "VGA2",
+						CategoryID:  1,
+						Quantity:    10,
+						Price:       5000000.00,
+						Description: "",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					err = itemRepository.Delete(1)
+					Expect(err).ShouldNot(HaveOccurred())
+
+					result, err := itemRepository.GetByItemID(1)
+					Expect(err).Should(HaveOccurred())
+					Expect(result).To(Equal(model.Items{}))
+
+					err = db.Reset(connection, "items")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("get all data items table by category id in database postgres", func() {
+				It("should return all data items by category id", func() {
+					_, err := itemRepository.Add(model.Items{
+						Name:        "VGA",
+						CategoryID:  1,
+						Quantity:    10,
+						Price:       5000000.00,
+						Description: "",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					_, err = itemRepository.Add(model.Items{
+						Name:        "VGA2",
+						CategoryID:  2,
+						Quantity:    10,
+						Price:       5000000.00,
+						Description: "",
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					results, err := itemRepository.GetByCategoryID(2)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(results).Should(HaveLen(1))
+
+					err = db.Reset(connection, "items")
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
