@@ -12,6 +12,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 	var userRepository repository.UserRepository
 	var categoryRepository repository.CategoryRepository
 	var itemRepository repository.ItemRepository
+	var activityRepository repository.ActivityRepository
 
 	db := app.NewDB()
 	credential := model.Credential{
@@ -28,17 +29,19 @@ var _ = Describe("Digital Inventory Management API", func() {
 	userRepository = repository.NewUserRepository(connection)
 	categoryRepository = repository.NewCategoryRepository(connection)
 	itemRepository = repository.NewItemRepository(connection)
+	activityRepository = repository.NewActivityRepository(connection)
 
 	BeforeEach(func() {
-		err = connection.Migrator().DropTable("users", "categories", "items")
+		err = connection.Migrator().DropTable("users", "categories", "items", "activities")
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err := connection.AutoMigrate(&model.Users{}, &model.Categories{}, &model.Items{})
+		err := connection.AutoMigrate(&model.Users{}, &model.Categories{}, &model.Items{}, model.Activities{})
 		Expect(err).ShouldNot(HaveOccurred())
 
 		err = db.Reset(connection, "users")
 		err = db.Reset(connection, "categories")
 		err = db.Reset(connection, "items")
+		err = db.Reset(connection, "activities")
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
@@ -437,6 +440,55 @@ var _ = Describe("Digital Inventory Management API", func() {
 					Expect(results).Should(HaveLen(1))
 
 					err = db.Reset(connection, "items")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+		})
+
+		/*
+			########################################################################################
+											ACTIVITY REPOSITORY
+			########################################################################################
+		*/
+		Describe("Item Repository", func() {
+			When("add new activity to activities table in database postgres", func() {
+				It("should save data activity to activities table in database postgres", func() {
+					_, err := activityRepository.Add(model.Activities{
+						ItemID:         1,
+						Action:         "POST",
+						QuantityChange: 5,
+						PerformedBy:    1,
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					err = db.Reset(connection, "activities")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("get all data activities table in database postgres", func() {
+				It("should return all data activities", func() {
+					_, err := activityRepository.Add(model.Activities{
+						ItemID:         1,
+						Action:         "POST",
+						QuantityChange: 5,
+						PerformedBy:    1,
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					_, err = activityRepository.Add(model.Activities{
+						ItemID:         2,
+						Action:         "POST",
+						QuantityChange: -2,
+						PerformedBy:    1,
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					results, err := activityRepository.GetAll()
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(results).Should(HaveLen(2))
+
+					err = db.Reset(connection, "activities")
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
