@@ -6,6 +6,7 @@ import (
 	"inventory-management-system/app"
 	"inventory-management-system/model"
 	"inventory-management-system/repository"
+	"time"
 )
 
 var _ = Describe("Digital Inventory Management API", func() {
@@ -13,6 +14,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 	var categoryRepository repository.CategoryRepository
 	var itemRepository repository.ItemRepository
 	var activityRepository repository.ActivityRepository
+	var sessionRepository repository.SessionRepository
 
 	db := app.NewDB()
 	credential := model.Credential{
@@ -30,18 +32,20 @@ var _ = Describe("Digital Inventory Management API", func() {
 	categoryRepository = repository.NewCategoryRepository(connection)
 	itemRepository = repository.NewItemRepository(connection)
 	activityRepository = repository.NewActivityRepository(connection)
+	sessionRepository = repository.NewSessionRepository(connection)
 
 	BeforeEach(func() {
-		err = connection.Migrator().DropTable("users", "categories", "items", "activities")
+		err = connection.Migrator().DropTable("users", "categories", "items", "activities", "sessions")
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err := connection.AutoMigrate(&model.Users{}, &model.Categories{}, &model.Items{}, model.Activities{})
+		err := connection.AutoMigrate(&model.Users{}, &model.Categories{}, &model.Items{}, model.Activities{}, &model.Sessions{})
 		Expect(err).ShouldNot(HaveOccurred())
 
 		err = db.Reset(connection, "users")
 		err = db.Reset(connection, "categories")
 		err = db.Reset(connection, "items")
 		err = db.Reset(connection, "activities")
+		err = db.Reset(connection, "sessions")
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
@@ -489,6 +493,68 @@ var _ = Describe("Digital Inventory Management API", func() {
 					Expect(results).Should(HaveLen(2))
 
 					err = db.Reset(connection, "activities")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+		})
+
+		/*
+			########################################################################################
+											SESSION REPOSITORY
+			########################################################################################
+		*/
+		Describe("Session Repository", func() {
+			When("add new session to sessions table in database postgres", func() {
+				It("should save data session to sessions table in database postgres", func() {
+					_, err := sessionRepository.Add(model.Sessions{
+						Username:  "bangkit",
+						Token:     "token",
+						ExpiresAt: time.Now().Add(5 * time.Minute),
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					err = db.Reset(connection, "sessions")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("get session by username is success", func() {
+				It("should return data session", func() {
+					session, err := sessionRepository.Add(model.Sessions{
+						Username:  "bangkit",
+						Token:     "token",
+						ExpiresAt: time.Now().Add(5 * time.Minute),
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					result, err := sessionRepository.GetByUsername("bangkit")
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(result.ID).To(Equal(uint(1)))
+					Expect(result.Username).To(Equal(session.Username))
+					Expect(result.Token).To(Equal(session.Token))
+
+					err = db.Reset(connection, "sessions")
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
+
+			When("delete session data by username to sessions table in database postgres", func() {
+				It("should soft delete data session by username", func() {
+					_, err := sessionRepository.Add(model.Sessions{
+						Username:  "bangkit",
+						Token:     "token",
+						ExpiresAt: time.Now().Add(5 * time.Minute),
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					err = sessionRepository.Delete("bangkit")
+					Expect(err).ShouldNot(HaveOccurred())
+
+					result, err := sessionRepository.GetByUsername("bangkit")
+					Expect(err).Should(HaveOccurred())
+					Expect(result).To(Equal(model.Sessions{}))
+
+					err = db.Reset(connection, "sessions")
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
