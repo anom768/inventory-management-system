@@ -8,5 +8,5 @@ type Activities struct {
 	Action         string    `gorm:"column:action" json:"action"`
 	QuantityChange int       `gorm:"column:quantity_change" json:"quantity_change"`
 	Timestamp      time.Time `gorm:"column:timestamp" json:"timestamp"`
-	PerformedBy    string    `gorm:"column:performed_by" json:"performed_by"`
+	PerformedBy    int       `gorm:"column:performed_by" json:"performed_by"`
 }

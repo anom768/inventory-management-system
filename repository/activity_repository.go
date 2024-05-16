@@ -6,6 +6,7 @@ import (
 )
 
 type ActivityRepository interface {
+	Add(activity model.Activities) (model.Activities, error)
 	GetAll() ([]model.Activities, error)
 }
 
@@ -15,6 +16,14 @@ type activityRepository struct {
 
 func NewActivityRepository(db *gorm.DB) ActivityRepository {
 	return &activityRepository{db}
+}
+
+func (ar *activityRepository) Add(activity model.Activities) (model.Activities, error) {
+	if err := ar.DB.Create(&activity).Error; err != nil {
+		return model.Activities{}, err
+	}
+
+	return activity, nil
 }
 
 func (ar *activityRepository) GetAll() ([]model.Activities, error) {
