@@ -31,7 +31,7 @@ func (c *categoryRepositoryImpl) Add(category model.Categories) (model.Categorie
 
 func (c *categoryRepositoryImpl) Update(category model.Categories) (model.Categories, error) {
 	newCategory := model.Categories{}
-	if err := c.DB.First(&newCategory, "username = ?", category.ID).Error; err != nil {
+	if err := c.DB.First(&newCategory, "id = ?", category.ID).Error; err != nil {
 		return model.Categories{}, err
 	}
 
