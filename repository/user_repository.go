@@ -13,11 +13,15 @@ type UserRepository interface {
 	GetByUsername(username string) (model.Users, error)
 }
 
-type UserRepositoryImpl struct {
+type userRepositoryImpl struct {
 	*gorm.DB
 }
 
-func (u *UserRepositoryImpl) Add(user model.Users) (model.Users, error) {
+func NewUserRepository(db *gorm.DB) UserRepository {
+	return &userRepositoryImpl{db}
+}
+
+func (u *userRepositoryImpl) Add(user model.Users) (model.Users, error) {
 	if err := u.DB.Create(&user).Error; err != nil {
 		return model.Users{}, err
 	}
@@ -25,7 +29,7 @@ func (u *UserRepositoryImpl) Add(user model.Users) (model.Users, error) {
 	return user, nil
 }
 
-func (u *UserRepositoryImpl) Update(user model.Users) (model.Users, error) {
+func (u *userRepositoryImpl) Update(user model.Users) (model.Users, error) {
 	newUser := model.Users{}
 	if err := u.DB.First(&newUser, "username = ?", user.Username).Error; err != nil {
 		return model.Users{}, err
@@ -40,7 +44,7 @@ func (u *UserRepositoryImpl) Update(user model.Users) (model.Users, error) {
 	return newUser, nil
 }
 
-func (u *UserRepositoryImpl) Delete(username string) error {
+func (u *userRepositoryImpl) Delete(username string) error {
 	user, err := u.GetByUsername(username)
 	if err != nil {
 		return err
@@ -53,7 +57,7 @@ func (u *UserRepositoryImpl) Delete(username string) error {
 	return nil
 }
 
-func (u *UserRepositoryImpl) GetAll() ([]model.Users, error) {
+func (u *userRepositoryImpl) GetAll() ([]model.Users, error) {
 	var users []model.Users
 	if err := u.DB.Find(&users).Error; err != nil {
 		return users, err
@@ -62,7 +66,7 @@ func (u *UserRepositoryImpl) GetAll() ([]model.Users, error) {
 	return users, nil
 }
 
-func (u *UserRepositoryImpl) GetByUsername(username string) (model.Users, error) {
+func (u *userRepositoryImpl) GetByUsername(username string) (model.Users, error) {
 	user := model.Users{}
 	if err := u.DB.Where("username = ?", username).First(&user).Error; err != nil {
 		return model.Users{}, err
