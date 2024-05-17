@@ -35,9 +35,10 @@ func (u *userRepositoryImpl) Update(user domain.Users) (domain.Users, error) {
 		return domain.Users{}, err
 	}
 
+	newUser.FullName = user.FullName
 	newUser.Password = user.Password
 	newUser.Role = user.Role
-	if err := u.DB.Save(&user).Error; err != nil {
+	if err := u.DB.Save(&newUser).Error; err != nil {
 		return domain.Users{}, err
 	}
 

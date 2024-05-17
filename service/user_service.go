@@ -24,10 +24,10 @@ type UserService interface {
 type userServiceImpl struct {
 	repository.UserRepository
 	repository.SessionRepository
-	validator.Validate
+	*validator.Validate
 }
 
-func NewUserService(userRepository repository.UserRepository, sessionRepository repository.SessionRepository, validate validator.Validate) UserService {
+func NewUserService(userRepository repository.UserRepository, sessionRepository repository.SessionRepository, validate *validator.Validate) UserService {
 	return &userServiceImpl{userRepository, sessionRepository, validate}
 }
 
@@ -47,8 +47,10 @@ func (u *userServiceImpl) Register(userRegisterRequest *web.UserRegisterRequest)
 	}
 
 	user, err := u.UserRepository.Add(domain.Users{
+		FullName: userRegisterRequest.FullName,
 		Username: userRegisterRequest.Username,
 		Password: hasPassword,
+		Role:     userRegisterRequest.Role,
 	})
 	if err != nil {
 		return domain.Users{}, errors.New("user creation failed")
@@ -107,10 +109,15 @@ func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) (domai
 		return domain.Users{}, err
 	}
 
+	hasPassword, err := hashPassword(userUpdateRequest.Password)
+	if err != nil {
+		return domain.Users{}, errors.New("hashing password failed")
+	}
+
 	user, err := u.UserRepository.Update(domain.Users{
 		Username: userUpdateRequest.Username,
 		FullName: userUpdateRequest.FullName,
-		Password: userUpdateRequest.Password,
+		Password: hasPassword,
 		Role:     userUpdateRequest.Role,
 	})
 	if err != nil {
