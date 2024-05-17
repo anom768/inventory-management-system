@@ -5,13 +5,13 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"inventory-management-system/model"
+	"inventory-management-system/model/domain"
 	"time"
 )
 
 type Postgres struct{}
 
-func (p *Postgres) Connect(credential *model.Credential) (*gorm.DB, error) {
+func (p *Postgres) Connect(credential *domain.Credential) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=Asia/Jakarta",
 		credential.Host, credential.Username, credential.Password, credential.DatabaseName, credential.Port)
 

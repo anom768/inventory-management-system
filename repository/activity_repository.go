@@ -2,12 +2,12 @@ package repository
 
 import (
 	"gorm.io/gorm"
-	"inventory-management-system/model"
+	"inventory-management-system/model/domain"
 )
 
 type ActivityRepository interface {
-	Add(activity model.Activities) (model.Activities, error)
-	GetAll() ([]model.Activities, error)
+	Add(activity domain.Activities) (domain.Activities, error)
+	GetAll() ([]domain.Activities, error)
 }
 
 type activityRepository struct {
@@ -18,16 +18,16 @@ func NewActivityRepository(db *gorm.DB) ActivityRepository {
 	return &activityRepository{db}
 }
 
-func (ar *activityRepository) Add(activity model.Activities) (model.Activities, error) {
+func (ar *activityRepository) Add(activity domain.Activities) (domain.Activities, error) {
 	if err := ar.DB.Create(&activity).Error; err != nil {
-		return model.Activities{}, err
+		return domain.Activities{}, err
 	}
 
 	return activity, nil
 }
 
-func (ar *activityRepository) GetAll() ([]model.Activities, error) {
-	var activities []model.Activities
+func (ar *activityRepository) GetAll() ([]domain.Activities, error) {
+	var activities []domain.Activities
 	if err := ar.Find(&activities).Error; err != nil {
 		return activities, err
 	}
