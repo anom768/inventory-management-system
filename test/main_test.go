@@ -18,12 +18,13 @@ import (
 
 var _ = Describe("Digital Inventory Management API", func() {
 	//var userRepository repository.UserRepository
-	var categoryRepository repository.CategoryRepository
-	//var itemRepository repository.ItemRepository
+	//var categoryRepository repository.CategoryRepository
+	var itemRepository repository.ItemRepository
 	//var activityRepository repository.ActivityRepository
 	//var sessionRepository repository.SessionRepository
 	//var userService service.UserService
-	var categoryService service.CategoryService
+	//var categoryService service.CategoryService
+	var itemService service.ItemService
 
 	db := app.NewDB()
 	credential := model.Credential{
@@ -39,12 +40,13 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 	validate := validator.New()
 	//userRepository = repository.NewUserRepository(connection)
-	categoryRepository = repository.NewCategoryRepository(connection)
-	//itemRepository = repository.NewItemRepository(connection)
+	//categoryRepository = repository.NewCategoryRepository(connection)
+	itemRepository = repository.NewItemRepository(connection)
 	//activityRepository = repository.NewActivityRepository(connection)
 	//sessionRepository = repository.NewSessionRepository(connection)
 	//userService = service.NewUserService(userRepository, sessionRepository, validate)
-	categoryService = service.NewCategoryService(categoryRepository, validate)
+	//categoryService = service.NewCategoryService(categoryRepository, validate)
+	itemService = service.NewItemService(itemRepository, validate)
 
 	BeforeEach(func() {
 		err = connection.Migrator().DropTable("users", "categories", "items", "activities", "sessions")
@@ -925,57 +927,274 @@ var _ = Describe("Digital Inventory Management API", func() {
 											CATEGORY SERVICE
 			########################################################################################
 		*/
-		Describe("Category Service", func() {
-			Describe("Add Category", func() {
-				When("add category is successful", func() {
-					It("should add category to database", func() {
-						request := &web.CategoryAddRequest{
-							ID:            1,
-							Name:          "VGA",
-							Specification: "RTX 3060",
-						}
-						category, err := categoryService.Add(request)
-						Expect(err).ShouldNot(HaveOccurred())
-						Expect(category.ID).To(Equal(request.ID))
-						Expect(category.Name).To(Equal(request.Name))
-						Expect(category.Specification).To(Equal(request.Specification))
+		//Describe("Category Service", func() {
+		//	Describe("Add Category", func() {
+		//		When("add category is successful", func() {
+		//			It("should add category to database", func() {
+		//				request := &web.CategoryAddRequest{
+		//					ID:            1,
+		//					Name:          "VGA",
+		//					Specification: "RTX 3060",
+		//				}
+		//				category, err := categoryService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//				Expect(category.ID).To(Equal(request.ID))
+		//				Expect(category.Name).To(Equal(request.Name))
+		//				Expect(category.Specification).To(Equal(request.Specification))
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("add category with blank field", func() {
+		//			It("should return error", func() {
+		//				request := &web.CategoryAddRequest{
+		//					ID:            1,
+		//					Name:          "",
+		//					Specification: "",
+		//				}
+		//				category, err := categoryService.Add(request)
+		//				Expect(err).Should(HaveOccurred())
+		//				Expect(category).To(Equal(model.Categories{}))
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("add category with duplicate id", func() {
+		//			It("should return error", func() {
+		//				request := &web.CategoryAddRequest{
+		//					ID:            1,
+		//					Name:          "VGA",
+		//					Specification: "RTX 3060",
+		//				}
+		//				_, err := categoryService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				category, err := categoryService.Add(request)
+		//				Expect(err).Should(HaveOccurred())
+		//				Expect(category).To(Equal(model.Categories{}))
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//
+		//	Describe("Get By ID", func() {
+		//		When("get by id is success", func() {
+		//			It("should return category data", func() {
+		//				request := &web.CategoryAddRequest{
+		//					ID:            1,
+		//					Name:          "VGA",
+		//					Specification: "RTX 3060",
+		//				}
+		//				_, err := categoryService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				category, err := categoryService.GetByID(request.ID)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//				Expect(category.ID).To(Equal(request.ID))
+		//				Expect(category.Name).To(Equal(request.Name))
+		//				Expect(category.Specification).To(Equal(request.Specification))
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("get by id is failed", func() {
+		//			It("should return empty category data", func() {
+		//				category, err := categoryService.GetByID(1)
+		//				Expect(err).Should(HaveOccurred())
+		//				Expect(category).To(Equal(model.Categories{}))
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//
+		//	Describe("Get All", func() {
+		//		When("get all data category success", func() {
+		//			It("should return all category data", func() {
+		//				request := &web.CategoryAddRequest{
+		//					ID:            1,
+		//					Name:          "VGA",
+		//					Specification: "RTX 3060",
+		//				}
+		//				_, err := categoryService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				request2 := &web.CategoryAddRequest{
+		//					ID:            2,
+		//					Name:          "VGA",
+		//					Specification: "RTX 3060",
+		//				}
+		//				_, err = categoryService.Add(request2)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				category, err := categoryService.GetAll()
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//				Expect(category).To(HaveLen(2))
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("get all data category empty", func() {
+		//			It("should return empty category data", func() {
+		//				categories, err := categoryService.GetAll()
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//				Expect(categories).To(HaveLen(0))
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//
+		//	Describe("Delete", func() {
+		//		When("delete existing category data", func() {
+		//			It("should delete data user", func() {
+		//				request := &web.CategoryAddRequest{
+		//					ID:            1,
+		//					Name:          "VGA",
+		//					Specification: "RTX 3060",
+		//				}
+		//				_, err := categoryService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				err = categoryService.Delete(request.ID)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				category, err := categoryService.GetByID(request.ID)
+		//				Expect(err).Should(HaveOccurred())
+		//				Expect(category).To(Equal(model.Categories{}))
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("delete not existing category data", func() {
+		//			It("should return error", func() {
+		//				err = categoryService.Delete(1)
+		//				Expect(err).Should(HaveOccurred())
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//
+		//	Describe("Update", func() {
+		//		When("update category data blank field", func() {
+		//			It("should return error", func() {
+		//				request := web.CategoryUpdateRequest{
+		//					ID:            1,
+		//					Name:          "",
+		//					Specification: "",
+		//				}
+		//				_, err = categoryService.Update(request)
+		//				Expect(err).Should(HaveOccurred())
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("update not existing category data", func() {
+		//			It("should return error", func() {
+		//				request := web.CategoryUpdateRequest{
+		//					ID:            1,
+		//					Name:          "VGA",
+		//					Specification: "RTX 3090",
+		//				}
+		//				_, err = categoryService.Update(request)
+		//				Expect(err).Should(HaveOccurred())
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("update category data is success", func() {
+		//			It("should update data category", func() {
+		//				request := web.CategoryAddRequest{
+		//					ID:            1,
+		//					Name:          "VGA",
+		//					Specification: "RTX 3060",
+		//				}
+		//				_, err := categoryService.Add(&request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				update := web.CategoryUpdateRequest{
+		//					ID:            1,
+		//					Name:          "VGA2",
+		//					Specification: "RTX 3090",
+		//				}
+		//				_, err = categoryService.Update(update)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				category, err := categoryService.GetByID(request.ID)
+		//				Expect(category.ID).To(Equal(update.ID))
+		//				Expect(category.Name).To(Equal(update.Name))
+		//				Expect(category.Specification).To(Equal(update.Specification))
+		//
+		//				err = db.Reset(connection, "categories")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//})
 
-						err = db.Reset(connection, "categories")
+		/*
+			########################################################################################
+											ITEM SERVICE
+			########################################################################################
+		*/
+		Describe("Item Service", func() {
+			Describe("Add Item", func() {
+				When("add item is successful", func() {
+					It("should add item to database", func() {
+						request := web.ItemAddRequest{
+							Name:        "VGA",
+							CategoryID:  1,
+							Quantity:    10,
+							Price:       500.00,
+							Description: "RTX 3060",
+						}
+						item, err := itemService.Add(request)
+						Expect(err).ShouldNot(HaveOccurred())
+						Expect(item.Name).To(Equal(request.Name))
+						Expect(item.CategoryID).To(Equal(request.CategoryID))
+						Expect(item.Quantity).To(Equal(request.Quantity))
+						Expect(item.Price).To(Equal(request.Price))
+						Expect(item.Description).To(Equal(request.Description))
+
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
 
-				When("add category with blank field", func() {
+				When("add item with blank field", func() {
 					It("should return error", func() {
-						request := &web.CategoryAddRequest{
-							ID:            1,
-							Name:          "",
-							Specification: "",
+						request := web.ItemAddRequest{
+							Name:        "",
+							CategoryID:  1,
+							Quantity:    10,
+							Price:       500.00,
+							Description: "",
 						}
-						category, err := categoryService.Add(request)
+						item, err := itemService.Add(request)
 						Expect(err).Should(HaveOccurred())
-						Expect(category).To(Equal(model.Categories{}))
+						Expect(item).To(Equal(model.Items{}))
 
-						err = db.Reset(connection, "categories")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-
-				When("add category with duplicate id", func() {
-					It("should return error", func() {
-						request := &web.CategoryAddRequest{
-							ID:            1,
-							Name:          "VGA",
-							Specification: "RTX 3060",
-						}
-						_, err := categoryService.Add(request)
-						Expect(err).ShouldNot(HaveOccurred())
-
-						category, err := categoryService.Add(request)
-						Expect(err).Should(HaveOccurred())
-						Expect(category).To(Equal(model.Categories{}))
-
-						err = db.Reset(connection, "categories")
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
@@ -983,167 +1202,189 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			Describe("Get By ID", func() {
 				When("get by id is success", func() {
-					It("should return category data", func() {
-						request := &web.CategoryAddRequest{
-							ID:            1,
-							Name:          "VGA",
-							Specification: "RTX 3060",
+					It("should return item data", func() {
+						request := web.ItemAddRequest{
+							Name:        "VGA",
+							CategoryID:  1,
+							Quantity:    10,
+							Price:       500.00,
+							Description: "RTX 3060",
 						}
-						_, err := categoryService.Add(request)
+						_, err := itemService.Add(request)
 						Expect(err).ShouldNot(HaveOccurred())
 
-						category, err := categoryService.GetByID(request.ID)
-						Expect(err).ShouldNot(HaveOccurred())
-						Expect(category.ID).To(Equal(request.ID))
-						Expect(category.Name).To(Equal(request.Name))
-						Expect(category.Specification).To(Equal(request.Specification))
+						item, err := itemService.GetByID(1)
+						Expect(item.Name).To(Equal(request.Name))
+						Expect(item.CategoryID).To(Equal(request.CategoryID))
+						Expect(item.Quantity).To(Equal(request.Quantity))
+						Expect(item.Price).To(Equal(request.Price))
+						Expect(item.Description).To(Equal(request.Description))
 
-						err = db.Reset(connection, "categories")
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
 
 				When("get by id is failed", func() {
-					It("should return empty category data", func() {
-						category, err := categoryService.GetByID(1)
+					It("should return empty item data", func() {
+						item, err := itemService.GetByID(1)
 						Expect(err).Should(HaveOccurred())
-						Expect(category).To(Equal(model.Categories{}))
+						Expect(item).To(Equal(model.Items{}))
 
-						err = db.Reset(connection, "categories")
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
 			})
 
 			Describe("Get All", func() {
-				When("get all data category success", func() {
-					It("should return all category data", func() {
-						request := &web.CategoryAddRequest{
-							ID:            1,
-							Name:          "VGA",
-							Specification: "RTX 3060",
+				When("get all data item success", func() {
+					It("should return all item data", func() {
+						request := web.ItemAddRequest{
+							Name:        "VGA",
+							CategoryID:  1,
+							Quantity:    10,
+							Price:       500.00,
+							Description: "RTX 3060",
 						}
-						_, err := categoryService.Add(request)
+						_, err := itemService.Add(request)
 						Expect(err).ShouldNot(HaveOccurred())
 
-						request2 := &web.CategoryAddRequest{
-							ID:            2,
-							Name:          "VGA",
-							Specification: "RTX 3060",
+						request2 := web.ItemAddRequest{
+							Name:        "PC",
+							CategoryID:  2,
+							Quantity:    10,
+							Price:       500.00,
+							Description: "RTX 3060",
 						}
-						_, err = categoryService.Add(request2)
+						_, err = itemService.Add(request2)
 						Expect(err).ShouldNot(HaveOccurred())
 
-						category, err := categoryService.GetAll()
+						item, err := itemService.GetAll()
 						Expect(err).ShouldNot(HaveOccurred())
-						Expect(category).To(HaveLen(2))
+						Expect(item).To(HaveLen(2))
 
-						err = db.Reset(connection, "categories")
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
 
-				When("get all data category empty", func() {
-					It("should return empty category data", func() {
-						categories, err := categoryService.GetAll()
+				When("get all data item empty", func() {
+					It("should return empty item data", func() {
+						items, err := itemService.GetAll()
 						Expect(err).ShouldNot(HaveOccurred())
-						Expect(categories).To(HaveLen(0))
+						Expect(items).To(HaveLen(0))
 
-						err = db.Reset(connection, "categories")
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
 			})
 
 			Describe("Delete", func() {
-				When("delete existing category data", func() {
-					It("should delete data user", func() {
-						request := &web.CategoryAddRequest{
-							ID:            1,
-							Name:          "VGA",
-							Specification: "RTX 3060",
+				When("delete existing item data", func() {
+					It("should delete data item", func() {
+						request := web.ItemAddRequest{
+							Name:        "VGA",
+							CategoryID:  1,
+							Quantity:    10,
+							Price:       500.00,
+							Description: "RTX 3060",
 						}
-						_, err := categoryService.Add(request)
+						_, err := itemService.Add(request)
 						Expect(err).ShouldNot(HaveOccurred())
 
-						err = categoryService.Delete(request.ID)
+						err = itemService.Delete(1)
 						Expect(err).ShouldNot(HaveOccurred())
 
-						category, err := categoryService.GetByID(request.ID)
+						item, err := itemService.GetByID(1)
 						Expect(err).Should(HaveOccurred())
-						Expect(category).To(Equal(model.Categories{}))
+						Expect(item).To(Equal(model.Items{}))
 
-						err = db.Reset(connection, "categories")
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
 
-				When("delete not existing category data", func() {
+				When("delete not existing item data", func() {
 					It("should return error", func() {
-						err = categoryService.Delete(1)
+						err = itemService.Delete(1)
 						Expect(err).Should(HaveOccurred())
 
-						err = db.Reset(connection, "categories")
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
 			})
 
 			Describe("Update", func() {
-				When("update category data blank field", func() {
+				When("update item data blank field", func() {
 					It("should return error", func() {
-						request := web.CategoryUpdateRequest{
-							ID:            1,
-							Name:          "",
-							Specification: "",
+						request := web.ItemUpdateRequest{
+							Name:        "",
+							CategoryID:  1,
+							Quantity:    10,
+							Price:       500.00,
+							Description: "",
 						}
-						_, err = categoryService.Update(request)
+						_, err := itemService.Update(request)
 						Expect(err).Should(HaveOccurred())
 
-						err = db.Reset(connection, "categories")
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
 
-				When("update not existing category data", func() {
+				When("update not existing item data", func() {
 					It("should return error", func() {
-						request := web.CategoryUpdateRequest{
-							ID:            1,
-							Name:          "VGA",
-							Specification: "RTX 3090",
+						request := web.ItemUpdateRequest{
+							ID:          1,
+							Name:        "",
+							CategoryID:  1,
+							Quantity:    10,
+							Price:       500.00,
+							Description: "",
 						}
-						_, err = categoryService.Update(request)
+						_, err := itemService.Update(request)
 						Expect(err).Should(HaveOccurred())
 
-						err = db.Reset(connection, "categories")
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
 
-				When("update category data is success", func() {
-					It("should update data category", func() {
-						request := web.CategoryAddRequest{
-							ID:            1,
-							Name:          "VGA",
-							Specification: "RTX 3060",
+				When("update item data is success", func() {
+					It("should update data item", func() {
+						request := web.ItemAddRequest{
+							Name:        "VGA",
+							CategoryID:  1,
+							Quantity:    10,
+							Price:       500.00,
+							Description: "RTX 3060",
 						}
-						_, err := categoryService.Add(&request)
+						_, err := itemService.Add(request)
 						Expect(err).ShouldNot(HaveOccurred())
 
-						update := web.CategoryUpdateRequest{
-							ID:            1,
-							Name:          "VGA2",
-							Specification: "RTX 3090",
+						update := web.ItemUpdateRequest{
+							ID:          1,
+							Name:        "VGN",
+							CategoryID:  2,
+							Quantity:    12,
+							Price:       5000.00,
+							Description: "RTX 3060 new",
 						}
-						_, err = categoryService.Update(update)
+						_, err = itemService.Update(update)
 						Expect(err).ShouldNot(HaveOccurred())
 
-						category, err := categoryService.GetByID(request.ID)
-						Expect(category.ID).To(Equal(update.ID))
-						Expect(category.Name).To(Equal(update.Name))
-						Expect(category.Specification).To(Equal(update.Specification))
+						item, err := itemService.GetByID(1)
+						Expect(item.ID).To(Equal(update.ID))
+						Expect(item.Name).To(Equal(update.Name))
+						Expect(item.CategoryID).To(Equal(update.CategoryID))
+						Expect(item.Quantity).To(Equal(update.Quantity))
+						Expect(item.Price).To(Equal(update.Price))
+						Expect(item.Description).To(Equal(update.Description))
 
-						err = db.Reset(connection, "categories")
+						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 				})
