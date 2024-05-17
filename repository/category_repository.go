@@ -2,15 +2,15 @@ package repository
 
 import (
 	"gorm.io/gorm"
-	"inventory-management-system/model"
+	"inventory-management-system/model/domain"
 )
 
 type CategoryRepository interface {
-	Add(category model.Categories) (model.Categories, error)
-	Update(category model.Categories) (model.Categories, error)
+	Add(category domain.Categories) (domain.Categories, error)
+	Update(category domain.Categories) (domain.Categories, error)
 	Delete(categoryID int) error
-	GetAll() ([]model.Categories, error)
-	GetByID(categoryID int) (model.Categories, error)
+	GetAll() ([]domain.Categories, error)
+	GetByID(categoryID int) (domain.Categories, error)
 }
 
 type categoryRepositoryImpl struct {
@@ -21,24 +21,24 @@ func NewCategoryRepository(db *gorm.DB) CategoryRepository {
 	return &categoryRepositoryImpl{db}
 }
 
-func (c *categoryRepositoryImpl) Add(category model.Categories) (model.Categories, error) {
+func (c *categoryRepositoryImpl) Add(category domain.Categories) (domain.Categories, error) {
 	if err := c.DB.Create(&category).Error; err != nil {
-		return model.Categories{}, err
+		return domain.Categories{}, err
 	}
 
 	return category, nil
 }
 
-func (c *categoryRepositoryImpl) Update(category model.Categories) (model.Categories, error) {
-	newCategory := model.Categories{}
+func (c *categoryRepositoryImpl) Update(category domain.Categories) (domain.Categories, error) {
+	newCategory := domain.Categories{}
 	if err := c.DB.First(&newCategory, "id = ?", category.ID).Error; err != nil {
-		return model.Categories{}, err
+		return domain.Categories{}, err
 	}
 
 	newCategory.Name = category.Name
 	newCategory.Specification = category.Specification
 	if err := c.DB.Save(&category).Error; err != nil {
-		return model.Categories{}, err
+		return domain.Categories{}, err
 	}
 
 	return newCategory, nil
@@ -57,8 +57,8 @@ func (c *categoryRepositoryImpl) Delete(categoryID int) error {
 	return nil
 }
 
-func (c *categoryRepositoryImpl) GetAll() ([]model.Categories, error) {
-	var categories []model.Categories
+func (c *categoryRepositoryImpl) GetAll() ([]domain.Categories, error) {
+	var categories []domain.Categories
 	if err := c.DB.Find(&categories).Error; err != nil {
 		return categories, err
 	}
@@ -66,10 +66,10 @@ func (c *categoryRepositoryImpl) GetAll() ([]model.Categories, error) {
 	return categories, nil
 }
 
-func (c *categoryRepositoryImpl) GetByID(categoryID int) (model.Categories, error) {
-	category := model.Categories{}
+func (c *categoryRepositoryImpl) GetByID(categoryID int) (domain.Categories, error) {
+	category := domain.Categories{}
 	if err := c.DB.Where("id = ?", categoryID).First(&category).Error; err != nil {
-		return model.Categories{}, err
+		return domain.Categories{}, err
 	}
 
 	return category, nil

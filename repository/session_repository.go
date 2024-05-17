@@ -2,13 +2,13 @@ package repository
 
 import (
 	"gorm.io/gorm"
-	"inventory-management-system/model"
+	"inventory-management-system/model/domain"
 )
 
 type SessionRepository interface {
-	Add(session model.Sessions) (model.Sessions, error)
+	Add(session domain.Sessions) (domain.Sessions, error)
 	Delete(username string) error
-	GetByUsername(username string) (model.Sessions, error)
+	GetByUsername(username string) (domain.Sessions, error)
 }
 
 type sessionRepository struct {
@@ -19,9 +19,9 @@ func NewSessionRepository(db *gorm.DB) SessionRepository {
 	return &sessionRepository{DB: db}
 }
 
-func (s *sessionRepository) Add(session model.Sessions) (model.Sessions, error) {
+func (s *sessionRepository) Add(session domain.Sessions) (domain.Sessions, error) {
 	if err := s.DB.Create(&session).Error; err != nil {
-		return model.Sessions{}, err
+		return domain.Sessions{}, err
 	}
 
 	return session, nil
@@ -40,10 +40,10 @@ func (s *sessionRepository) Delete(username string) error {
 	return nil
 }
 
-func (s *sessionRepository) GetByUsername(username string) (model.Sessions, error) {
-	session := model.Sessions{}
+func (s *sessionRepository) GetByUsername(username string) (domain.Sessions, error) {
+	session := domain.Sessions{}
 	if err := s.DB.Where("username = ?", username).First(&session).Error; err != nil {
-		return model.Sessions{}, err
+		return domain.Sessions{}, err
 	}
 
 	return session, nil

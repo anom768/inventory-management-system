@@ -2,15 +2,15 @@ package repository
 
 import (
 	"gorm.io/gorm"
-	"inventory-management-system/model"
+	"inventory-management-system/model/domain"
 )
 
 type UserRepository interface {
-	Add(user model.Users) (model.Users, error)
-	Update(user model.Users) (model.Users, error)
+	Add(user domain.Users) (domain.Users, error)
+	Update(user domain.Users) (domain.Users, error)
 	Delete(username string) error
-	GetAll() ([]model.Users, error)
-	GetByUsername(username string) (model.Users, error)
+	GetAll() ([]domain.Users, error)
+	GetByUsername(username string) (domain.Users, error)
 }
 
 type userRepositoryImpl struct {
@@ -21,24 +21,24 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepositoryImpl{db}
 }
 
-func (u *userRepositoryImpl) Add(user model.Users) (model.Users, error) {
+func (u *userRepositoryImpl) Add(user domain.Users) (domain.Users, error) {
 	if err := u.DB.Create(&user).Error; err != nil {
-		return model.Users{}, err
+		return domain.Users{}, err
 	}
 
 	return user, nil
 }
 
-func (u *userRepositoryImpl) Update(user model.Users) (model.Users, error) {
-	newUser := model.Users{}
+func (u *userRepositoryImpl) Update(user domain.Users) (domain.Users, error) {
+	newUser := domain.Users{}
 	if err := u.DB.First(&newUser, "username = ?", user.Username).Error; err != nil {
-		return model.Users{}, err
+		return domain.Users{}, err
 	}
 
 	newUser.Password = user.Password
 	newUser.Role = user.Role
 	if err := u.DB.Save(&user).Error; err != nil {
-		return model.Users{}, err
+		return domain.Users{}, err
 	}
 
 	return newUser, nil
@@ -57,8 +57,8 @@ func (u *userRepositoryImpl) Delete(username string) error {
 	return nil
 }
 
-func (u *userRepositoryImpl) GetAll() ([]model.Users, error) {
-	var users []model.Users
+func (u *userRepositoryImpl) GetAll() ([]domain.Users, error) {
+	var users []domain.Users
 	if err := u.DB.Find(&users).Error; err != nil {
 		return users, err
 	}
@@ -66,10 +66,10 @@ func (u *userRepositoryImpl) GetAll() ([]model.Users, error) {
 	return users, nil
 }
 
-func (u *userRepositoryImpl) GetByUsername(username string) (model.Users, error) {
-	user := model.Users{}
+func (u *userRepositoryImpl) GetByUsername(username string) (domain.Users, error) {
+	user := domain.Users{}
 	if err := u.DB.Where("username = ?", username).First(&user).Error; err != nil {
-		return model.Users{}, err
+		return domain.Users{}, err
 	}
 
 	return user, nil
