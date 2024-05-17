@@ -42,6 +42,9 @@ func (c *categoryServiceImpl) Add(categoryAddRequest *web.CategoryAddRequest) (d
 		Name:          categoryAddRequest.Name,
 		Specification: categoryAddRequest.Specification,
 	})
+	if err != nil {
+		return domain.Categories{}, err
+	}
 
 	return category, nil
 }
