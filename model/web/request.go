@@ -18,3 +18,15 @@ type UserUpdateRequest struct {
 	Password string `json:"password" validate:"required,min=8,max=20"`
 	Role     string `json:"role" validate:"required,eq=admin|eq=user"`
 }
+
+type CategoryAddRequest struct {
+	ID            int    `json:"id" validate:"required"`
+	Name          string `json:"name" validate:"required,max=255"`
+	Specification string `json:"specification" validate:"required,max=255"`
+}
+
+type CategoryUpdateRequest struct {
+	ID            int    `json:"id" validate:"required"`
+	Name          string `json:"name" validate:"required,max=255"`
+	Specification string `json:"specification" validate:"required,max=255"`
+}
