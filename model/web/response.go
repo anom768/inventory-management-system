@@ -32,6 +32,16 @@ func NewBadRequestResponse(message string) *BadRequestResponse {
 	return &BadRequestResponse{http.StatusBadRequest, "status bad request", message}
 }
 
+type Unauthorized struct {
+	Code    uint   `json:"code"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+func NewUnauthorized(message string) *Unauthorized {
+	return &Unauthorized{http.StatusUnauthorized, "status unauthorized", message}
+}
+
 type InternalServerError struct {
 	Code    uint   `json:"code"`
 	Status  string `json:"status"`
