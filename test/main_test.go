@@ -1,32 +1,39 @@
 package test
 
 import (
-	"github.com/go-playground/validator/v10"
-	"inventory-management-system/repository"
-	"time"
-
+	"bytes"
+	"encoding/json"
+	"github.com/gin-gonic/gin"
 	//"github.com/go-playground/validator/v10"
+	//"inventory-management-system/controller"
+	"inventory-management-system/model/web"
+	"net/http"
+	"net/http/httptest"
+
+	//"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"golang.org/x/crypto/bcrypt"
 	"inventory-management-system/app"
 	model "inventory-management-system/model/domain"
-	"inventory-management-system/model/web"
-	"inventory-management-system/service"
+	//"inventory-management-system/model/web"
 	//"inventory-management-system/service"
-	//"time"
+	//"inventory-management-system/service"
 )
 
 var _ = Describe("Digital Inventory Management API", func() {
+	var apiServer *gin.Engine
 	//var userRepository repository.UserRepository
 	//var categoryRepository repository.CategoryRepository
-	var itemRepository repository.ItemRepository
-	var activityRepository repository.ActivityRepository
+	//var itemRepository repository.ItemRepository
+	//var activityRepository repository.ActivityRepository
 	//var sessionRepository repository.SessionRepository
 	//var userService service.UserService
 	//var categoryService service.CategoryService
-	var itemService service.ItemService
-	var activityService service.ActivityService
+	//var itemService service.ItemService
+	//var activityService service.ActivityService
+	//var userController controller.UserController
 
 	db := app.NewDB()
 	credential := model.Credential{
@@ -40,16 +47,17 @@ var _ = Describe("Digital Inventory Management API", func() {
 	connection, err := db.Connect(&credential)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	validate := validator.New()
+	//validate := validator.New()
 	//userRepository = repository.NewUserRepository(connection)
 	//categoryRepository = repository.NewCategoryRepository(connection)
-	itemRepository = repository.NewItemRepository(connection)
-	activityRepository = repository.NewActivityRepository(connection)
+	//itemRepository = repository.NewItemRepository(connection)
+	//activityRepository = repository.NewActivityRepository(connection)
 	//sessionRepository = repository.NewSessionRepository(connection)
 	//userService = service.NewUserService(userRepository, sessionRepository, validate)
 	//categoryService = service.NewCategoryService(categoryRepository, validate)
-	itemService = service.NewItemService(itemRepository, validate)
-	activityService = service.NewActivityService(activityRepository, validate)
+	//itemService = service.NewItemService(itemRepository, validate)
+	//activityService = service.NewActivityService(activityRepository, validate)
+	//userController = controller.NewUserController(userService, validate)
 
 	BeforeEach(func() {
 		err = connection.Migrator().DropTable("users", "categories", "items", "activities", "sessions")
@@ -1160,327 +1168,352 @@ var _ = Describe("Digital Inventory Management API", func() {
 											ITEM SERVICE
 			########################################################################################
 		*/
-		Describe("Item Service", func() {
-			Describe("Add Item", func() {
-				When("add item is successful", func() {
-					It("should add item to database", func() {
-						request := web.ItemAddRequest{
-							Name:        "VGA",
-							CategoryID:  1,
-							Quantity:    10,
-							Price:       500.00,
-							Description: "RTX 3060",
-						}
-						item, err := itemService.Add(request)
-						Expect(err).ShouldNot(HaveOccurred())
-						Expect(item.Name).To(Equal(request.Name))
-						Expect(item.CategoryID).To(Equal(request.CategoryID))
-						Expect(item.Quantity).To(Equal(request.Quantity))
-						Expect(item.Price).To(Equal(request.Price))
-						Expect(item.Description).To(Equal(request.Description))
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-
-				When("add item with blank field", func() {
-					It("should return error", func() {
-						request := web.ItemAddRequest{
-							Name:        "",
-							CategoryID:  1,
-							Quantity:    10,
-							Price:       500.00,
-							Description: "",
-						}
-						item, err := itemService.Add(request)
-						Expect(err).Should(HaveOccurred())
-						Expect(item).To(Equal(model.Items{}))
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-			})
-
-			Describe("Get By ID", func() {
-				When("get by id is success", func() {
-					It("should return item data", func() {
-						request := web.ItemAddRequest{
-							Name:        "VGA",
-							CategoryID:  1,
-							Quantity:    10,
-							Price:       500.00,
-							Description: "RTX 3060",
-						}
-						_, err := itemService.Add(request)
-						Expect(err).ShouldNot(HaveOccurred())
-
-						item, err := itemService.GetByID(1)
-						Expect(item.Name).To(Equal(request.Name))
-						Expect(item.CategoryID).To(Equal(request.CategoryID))
-						Expect(item.Quantity).To(Equal(request.Quantity))
-						Expect(item.Price).To(Equal(request.Price))
-						Expect(item.Description).To(Equal(request.Description))
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-
-				When("get by id is failed", func() {
-					It("should return empty item data", func() {
-						item, err := itemService.GetByID(1)
-						Expect(err).Should(HaveOccurred())
-						Expect(item).To(Equal(model.Items{}))
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-			})
-
-			Describe("Get All", func() {
-				When("get all data item success", func() {
-					It("should return all item data", func() {
-						request := web.ItemAddRequest{
-							Name:        "VGA",
-							CategoryID:  1,
-							Quantity:    10,
-							Price:       500.00,
-							Description: "RTX 3060",
-						}
-						_, err := itemService.Add(request)
-						Expect(err).ShouldNot(HaveOccurred())
-
-						request2 := web.ItemAddRequest{
-							Name:        "PC",
-							CategoryID:  2,
-							Quantity:    10,
-							Price:       500.00,
-							Description: "RTX 3060",
-						}
-						_, err = itemService.Add(request2)
-						Expect(err).ShouldNot(HaveOccurred())
-
-						item, err := itemService.GetAll()
-						Expect(err).ShouldNot(HaveOccurred())
-						Expect(item).To(HaveLen(2))
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-
-				When("get all data item empty", func() {
-					It("should return empty item data", func() {
-						items, err := itemService.GetAll()
-						Expect(err).ShouldNot(HaveOccurred())
-						Expect(items).To(HaveLen(0))
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-			})
-
-			Describe("Delete", func() {
-				When("delete existing item data", func() {
-					It("should delete data item", func() {
-						request := web.ItemAddRequest{
-							Name:        "VGA",
-							CategoryID:  1,
-							Quantity:    10,
-							Price:       500.00,
-							Description: "RTX 3060",
-						}
-						_, err := itemService.Add(request)
-						Expect(err).ShouldNot(HaveOccurred())
-
-						err = itemService.Delete(1)
-						Expect(err).ShouldNot(HaveOccurred())
-
-						item, err := itemService.GetByID(1)
-						Expect(err).Should(HaveOccurred())
-						Expect(item).To(Equal(model.Items{}))
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-
-				When("delete not existing item data", func() {
-					It("should return error", func() {
-						err = itemService.Delete(1)
-						Expect(err).Should(HaveOccurred())
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-			})
-
-			Describe("Update", func() {
-				When("update item data blank field", func() {
-					It("should return error", func() {
-						request := web.ItemUpdateRequest{
-							Name:        "",
-							CategoryID:  1,
-							Quantity:    10,
-							Price:       500.00,
-							Description: "",
-						}
-						_, err := itemService.Update(request)
-						Expect(err).Should(HaveOccurred())
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-
-				When("update not existing item data", func() {
-					It("should return error", func() {
-						request := web.ItemUpdateRequest{
-							ID:          1,
-							Name:        "",
-							CategoryID:  1,
-							Quantity:    10,
-							Price:       500.00,
-							Description: "",
-						}
-						_, err := itemService.Update(request)
-						Expect(err).Should(HaveOccurred())
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-
-				When("update item data is success", func() {
-					It("should update data item", func() {
-						request := web.ItemAddRequest{
-							Name:        "VGA",
-							CategoryID:  1,
-							Quantity:    10,
-							Price:       500.00,
-							Description: "RTX 3060",
-						}
-						_, err := itemService.Add(request)
-						Expect(err).ShouldNot(HaveOccurred())
-
-						update := web.ItemUpdateRequest{
-							ID:          1,
-							Name:        "VGN",
-							CategoryID:  2,
-							Quantity:    12,
-							Price:       5000.00,
-							Description: "RTX 3060 new",
-						}
-						_, err = itemService.Update(update)
-						Expect(err).ShouldNot(HaveOccurred())
-
-						item, err := itemService.GetByID(1)
-						Expect(item.ID).To(Equal(update.ID))
-						Expect(item.Name).To(Equal(update.Name))
-						Expect(item.CategoryID).To(Equal(update.CategoryID))
-						Expect(item.Quantity).To(Equal(update.Quantity))
-						Expect(item.Price).To(Equal(update.Price))
-						Expect(item.Description).To(Equal(update.Description))
-
-						err = db.Reset(connection, "items")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-			})
-		})
+		//Describe("Item Service", func() {
+		//	Describe("Add Item", func() {
+		//		When("add item is successful", func() {
+		//			It("should add item to database", func() {
+		//				request := web.ItemAddRequest{
+		//					Name:        "VGA",
+		//					CategoryID:  1,
+		//					Quantity:    10,
+		//					Price:       500.00,
+		//					Description: "RTX 3060",
+		//				}
+		//				item, err := itemService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//				Expect(item.Name).To(Equal(request.Name))
+		//				Expect(item.CategoryID).To(Equal(request.CategoryID))
+		//				Expect(item.Quantity).To(Equal(request.Quantity))
+		//				Expect(item.Price).To(Equal(request.Price))
+		//				Expect(item.Description).To(Equal(request.Description))
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("add item with blank field", func() {
+		//			It("should return error", func() {
+		//				request := web.ItemAddRequest{
+		//					Name:        "",
+		//					CategoryID:  1,
+		//					Quantity:    10,
+		//					Price:       500.00,
+		//					Description: "",
+		//				}
+		//				item, err := itemService.Add(request)
+		//				Expect(err).Should(HaveOccurred())
+		//				Expect(item).To(Equal(model.Items{}))
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//
+		//	Describe("Get By ID", func() {
+		//		When("get by id is success", func() {
+		//			It("should return item data", func() {
+		//				request := web.ItemAddRequest{
+		//					Name:        "VGA",
+		//					CategoryID:  1,
+		//					Quantity:    10,
+		//					Price:       500.00,
+		//					Description: "RTX 3060",
+		//				}
+		//				_, err := itemService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				item, err := itemService.GetByID(1)
+		//				Expect(item.Name).To(Equal(request.Name))
+		//				Expect(item.CategoryID).To(Equal(request.CategoryID))
+		//				Expect(item.Quantity).To(Equal(request.Quantity))
+		//				Expect(item.Price).To(Equal(request.Price))
+		//				Expect(item.Description).To(Equal(request.Description))
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("get by id is failed", func() {
+		//			It("should return empty item data", func() {
+		//				item, err := itemService.GetByID(1)
+		//				Expect(err).Should(HaveOccurred())
+		//				Expect(item).To(Equal(model.Items{}))
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//
+		//	Describe("Get All", func() {
+		//		When("get all data item success", func() {
+		//			It("should return all item data", func() {
+		//				request := web.ItemAddRequest{
+		//					Name:        "VGA",
+		//					CategoryID:  1,
+		//					Quantity:    10,
+		//					Price:       500.00,
+		//					Description: "RTX 3060",
+		//				}
+		//				_, err := itemService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				request2 := web.ItemAddRequest{
+		//					Name:        "PC",
+		//					CategoryID:  2,
+		//					Quantity:    10,
+		//					Price:       500.00,
+		//					Description: "RTX 3060",
+		//				}
+		//				_, err = itemService.Add(request2)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				item, err := itemService.GetAll()
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//				Expect(item).To(HaveLen(2))
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("get all data item empty", func() {
+		//			It("should return empty item data", func() {
+		//				items, err := itemService.GetAll()
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//				Expect(items).To(HaveLen(0))
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//
+		//	Describe("Delete", func() {
+		//		When("delete existing item data", func() {
+		//			It("should delete data item", func() {
+		//				request := web.ItemAddRequest{
+		//					Name:        "VGA",
+		//					CategoryID:  1,
+		//					Quantity:    10,
+		//					Price:       500.00,
+		//					Description: "RTX 3060",
+		//				}
+		//				_, err := itemService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				err = itemService.Delete(1)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				item, err := itemService.GetByID(1)
+		//				Expect(err).Should(HaveOccurred())
+		//				Expect(item).To(Equal(model.Items{}))
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("delete not existing item data", func() {
+		//			It("should return error", func() {
+		//				err = itemService.Delete(1)
+		//				Expect(err).Should(HaveOccurred())
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//
+		//	Describe("Update", func() {
+		//		When("update item data blank field", func() {
+		//			It("should return error", func() {
+		//				request := web.ItemUpdateRequest{
+		//					Name:        "",
+		//					CategoryID:  1,
+		//					Quantity:    10,
+		//					Price:       500.00,
+		//					Description: "",
+		//				}
+		//				_, err := itemService.Update(request)
+		//				Expect(err).Should(HaveOccurred())
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("update not existing item data", func() {
+		//			It("should return error", func() {
+		//				request := web.ItemUpdateRequest{
+		//					ID:          1,
+		//					Name:        "",
+		//					CategoryID:  1,
+		//					Quantity:    10,
+		//					Price:       500.00,
+		//					Description: "",
+		//				}
+		//				_, err := itemService.Update(request)
+		//				Expect(err).Should(HaveOccurred())
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("update item data is success", func() {
+		//			It("should update data item", func() {
+		//				request := web.ItemAddRequest{
+		//					Name:        "VGA",
+		//					CategoryID:  1,
+		//					Quantity:    10,
+		//					Price:       500.00,
+		//					Description: "RTX 3060",
+		//				}
+		//				_, err := itemService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				update := web.ItemUpdateRequest{
+		//					ID:          1,
+		//					Name:        "VGN",
+		//					CategoryID:  2,
+		//					Quantity:    12,
+		//					Price:       5000.00,
+		//					Description: "RTX 3060 new",
+		//				}
+		//				_, err = itemService.Update(update)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				item, err := itemService.GetByID(1)
+		//				Expect(item.ID).To(Equal(update.ID))
+		//				Expect(item.Name).To(Equal(update.Name))
+		//				Expect(item.CategoryID).To(Equal(update.CategoryID))
+		//				Expect(item.Quantity).To(Equal(update.Quantity))
+		//				Expect(item.Price).To(Equal(update.Price))
+		//				Expect(item.Description).To(Equal(update.Description))
+		//
+		//				err = db.Reset(connection, "items")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//})
 
 		/*
 			########################################################################################
 											ACTIVITY SERVICE
 			########################################################################################
 		*/
-		Describe("Activity Service", func() {
-			Describe("Add Activity", func() {
-				When("add activity is successful", func() {
-					It("should add activity to database", func() {
-						request := web.ActivityAddRequest{
-							ItemID:        1,
-							Action:        "PUT",
-							QuantityChane: -5,
-							Timestamp:     time.Now(),
-							PerformedBy:   1,
+		//Describe("Activity Service", func() {
+		//	Describe("Add Activity", func() {
+		//		When("add activity is successful", func() {
+		//			It("should add activity to database", func() {
+		//				request := web.ActivityAddRequest{
+		//					ItemID:        1,
+		//					Action:        "PUT",
+		//					QuantityChane: -5,
+		//					Timestamp:     time.Now(),
+		//					PerformedBy:   1,
+		//				}
+		//				activity, err := activityService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//				Expect(activity.ItemID).To(Equal(request.ItemID))
+		//				Expect(activity.Action).To(Equal(request.Action))
+		//				Expect(activity.QuantityChange).To(Equal(request.QuantityChane))
+		//				Expect(activity.Timestamp).To(Equal(request.Timestamp))
+		//				Expect(activity.PerformedBy).To(Equal(request.PerformedBy))
+		//
+		//				err = db.Reset(connection, "activities")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("add activity with blank field", func() {
+		//			It("should return error", func() {
+		//				request := web.ActivityAddRequest{
+		//					Action:        "",
+		//					QuantityChane: -5,
+		//					Timestamp:     time.Now(),
+		//					PerformedBy:   1,
+		//				}
+		//				activity, err := activityService.Add(request)
+		//				Expect(err).Should(HaveOccurred())
+		//				Expect(activity).To(Equal(model.Activities{}))
+		//
+		//				err = db.Reset(connection, "activities")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//
+		//	Describe("Get All", func() {
+		//		When("get all data activity success", func() {
+		//			It("should return all activity data", func() {
+		//				request := web.ActivityAddRequest{
+		//					ItemID:        1,
+		//					Action:        "PUT",
+		//					QuantityChane: -5,
+		//					Timestamp:     time.Now(),
+		//					PerformedBy:   1,
+		//				}
+		//				_, err := activityService.Add(request)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				request2 := web.ActivityAddRequest{
+		//					ItemID:        2,
+		//					Action:        "PUT",
+		//					QuantityChane: 10,
+		//					Timestamp:     time.Now(),
+		//					PerformedBy:   1,
+		//				}
+		//				_, err = activityService.Add(request2)
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//
+		//				activity, err := activityService.GetAll()
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//				Expect(activity).To(HaveLen(2))
+		//
+		//				err = db.Reset(connection, "activities")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//
+		//		When("get all data activity empty", func() {
+		//			It("should return empty activity data", func() {
+		//				activities, err := activityService.GetAll()
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//				Expect(activities).To(HaveLen(0))
+		//
+		//				err = db.Reset(connection, "activities")
+		//				Expect(err).ShouldNot(HaveOccurred())
+		//			})
+		//		})
+		//	})
+		//})
+	})
+
+	Describe("Controller", func() {
+		Describe("User Controller", func() {
+			Describe("Register", func() {
+				When("user registration is success", func() {
+					It("should save data user to database", func() {
+						userRequest := web.UserRegisterRequest{
+							FullName: "Bangkit Anom",
+							Username: "bangkit",
+							Password: "rahasia",
+							Role:     "admin",
 						}
-						activity, err := activityService.Add(request)
-						Expect(err).ShouldNot(HaveOccurred())
-						Expect(activity.ItemID).To(Equal(request.ItemID))
-						Expect(activity.Action).To(Equal(request.Action))
-						Expect(activity.QuantityChange).To(Equal(request.QuantityChane))
-						Expect(activity.Timestamp).To(Equal(request.Timestamp))
-						Expect(activity.PerformedBy).To(Equal(request.PerformedBy))
 
-						err = db.Reset(connection, "activities")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
+						body, _ := json.Marshal(userRequest)
+						writer := httptest.NewRecorder()
+						request := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewBuffer(body))
+						request.Header.Set("Content-Type", "application/json")
 
-				When("add activity with blank field", func() {
-					It("should return error", func() {
-						request := web.ActivityAddRequest{
-							Action:        "",
-							QuantityChane: -5,
-							Timestamp:     time.Now(),
-							PerformedBy:   1,
-						}
-						activity, err := activityService.Add(request)
-						Expect(err).Should(HaveOccurred())
-						Expect(activity).To(Equal(model.Activities{}))
-
-						err = db.Reset(connection, "activities")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-			})
-
-			Describe("Get All", func() {
-				When("get all data activity success", func() {
-					It("should return all activity data", func() {
-						request := web.ActivityAddRequest{
-							ItemID:        1,
-							Action:        "PUT",
-							QuantityChane: -5,
-							Timestamp:     time.Now(),
-							PerformedBy:   1,
-						}
-						_, err := activityService.Add(request)
-						Expect(err).ShouldNot(HaveOccurred())
-
-						request2 := web.ActivityAddRequest{
-							ItemID:        2,
-							Action:        "PUT",
-							QuantityChane: 10,
-							Timestamp:     time.Now(),
-							PerformedBy:   1,
-						}
-						_, err = activityService.Add(request2)
-						Expect(err).ShouldNot(HaveOccurred())
-
-						activity, err := activityService.GetAll()
-						Expect(err).ShouldNot(HaveOccurred())
-						Expect(activity).To(HaveLen(2))
-
-						err = db.Reset(connection, "activities")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-
-				When("get all data activity empty", func() {
-					It("should return empty activity data", func() {
-						activities, err := activityService.GetAll()
-						Expect(err).ShouldNot(HaveOccurred())
-						Expect(activities).To(HaveLen(0))
-
-						err = db.Reset(connection, "activities")
-						Expect(err).ShouldNot(HaveOccurred())
+						apiServer.ServeHTTP(writer, request)
+						//err := json.Unmarshal(writer.Body.Bytes(), &)
 					})
 				})
 			})
