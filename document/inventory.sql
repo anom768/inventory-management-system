@@ -76,3 +76,4 @@ SELECT * FROM items;
 SELECT * FROM categories;
 SELECT * FROM activities;
 SELECT * FROM sessions;
+TRUNCATE TABLE sessions;

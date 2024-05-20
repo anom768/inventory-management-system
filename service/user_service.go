@@ -132,11 +132,23 @@ func (u *userServiceImpl) Delete(username string) error {
 }
 
 func (u *userServiceImpl) GetAll() ([]domain.Users, error) {
-	return u.UserRepository.GetAll()
+	users, err := u.UserRepository.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	for i := range users {
+		users[i].Password = "-"
+	}
+	return users, nil
 }
 
 func (u *userServiceImpl) GetByUsername(username string) (domain.Users, error) {
-	return u.UserRepository.GetByUsername(username)
+	user, err := u.UserRepository.GetByUsername(username)
+	if err != nil {
+		return domain.Users{}, err
+	}
+	user.Password = "-"
+	return user, nil
 }
 
 func (u *userServiceImpl) CheckAvailable(username string) bool {

@@ -37,7 +37,7 @@ func (u *userControllerImpl) Register(c *gin.Context) {
 
 	err = u.Validate.Struct(userRegisterRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("validation error"))
 		return
 	}
 
@@ -81,6 +81,7 @@ func (u *userControllerImpl) Login(c *gin.Context) {
 
 func (u *userControllerImpl) Update(c *gin.Context) {
 	var userUpdateRequest web.UserUpdateRequest
+	userUpdateRequest.Username = c.Param("username")
 	err := c.ShouldBind(&userUpdateRequest)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
