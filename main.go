@@ -17,8 +17,11 @@ func main() {
 	var validate validator.Validate
 	var userRepository repository.UserRepository
 	var sessionRepository repository.SessionRepository
+	var categoryRepository repository.CategoryRepository
 	var userService service.UserService
+	var categoryService service.CategoryService
 	var userController controller.UserController
+	var categoryController controller.CategoryController
 
 	dbCredential := domain.Credential{
 		Host:         "localhost",
@@ -43,8 +46,11 @@ func main() {
 	validate = *validator.New()
 	userRepository = repository.NewUserRepository(connection)
 	sessionRepository = repository.NewSessionRepository(connection)
+	categoryRepository = repository.NewCategoryRepository(connection)
 	userService = service.NewUserService(userRepository, sessionRepository, &validate)
+	categoryService = service.NewCategoryService(categoryRepository, &validate)
 	userController = controller.NewUserController(userService, &validate)
+	categoryController = controller.NewCategoryController(categoryService, &validate)
 
 	postgres.Reset(connection, "users")
 	//postgres.Reset(connection, "sessions")
@@ -52,6 +58,7 @@ func main() {
 
 	apiServer = gin.New()
 	app.UserRouter(apiServer, userController)
+	app.CategoryRouter(apiServer, categoryController)
 	err = apiServer.Run(":8080")
 	if err != nil {
 		panic(err)

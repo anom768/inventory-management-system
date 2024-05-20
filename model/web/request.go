@@ -24,13 +24,13 @@ type UserUpdateRequest struct {
 type CategoryAddRequest struct {
 	ID            int    `json:"id" validate:"required"`
 	Name          string `json:"name" validate:"required,max=255"`
-	Specification string `json:"specification" validate:"required,max=255"`
+	Specification string `json:"specification"`
 }
 
 type CategoryUpdateRequest struct {
 	ID            int    `json:"id" validate:"required"`
 	Name          string `json:"name" validate:"required,max=255"`
-	Specification string `json:"specification" validate:"required,max=255"`
+	Specification string `json:"specification"`
 }
 
 type ItemAddRequest struct {

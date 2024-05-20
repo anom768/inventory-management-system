@@ -121,6 +121,11 @@ func (u *userControllerImpl) GetAll(c *gin.Context) {
 		return
 	}
 
+	if len(users) == 0 {
+		c.AbortWithStatusJSON(http.StatusNotFound, web.NewNotFoundResponse("record not found"))
+		return
+	}
+
 	c.JSON(http.StatusOK, web.NewResponseModel(users))
 }
 
