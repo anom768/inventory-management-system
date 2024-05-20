@@ -31,13 +31,13 @@ func (u *userControllerImpl) Register(c *gin.Context) {
 	var userRegisterRequest web.UserRegisterRequest
 	err := c.ShouldBind(&userRegisterRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request: "+err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
 		return
 	}
 
 	err = u.Validate.Struct(userRegisterRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request: "+err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
 		return
 	}
 
@@ -54,13 +54,13 @@ func (u *userControllerImpl) Login(c *gin.Context) {
 	var userLoginRequest web.UserLoginRequest
 	err := c.ShouldBindJSON(&userLoginRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request: "+err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
 		return
 	}
 
 	err = u.Validate.Struct(userLoginRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request: "+err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
 		return
 	}
 
@@ -83,13 +83,13 @@ func (u *userControllerImpl) Update(c *gin.Context) {
 	var userUpdateRequest web.UserUpdateRequest
 	err := c.ShouldBind(&userUpdateRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request: "+err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
 		return
 	}
 
 	err = u.Validate.Struct(userUpdateRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request: "+err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
 		return
 	}
 

@@ -12,14 +12,15 @@ func Auth() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		// TODO: answer here
 		sessionToken, err := ctx.Cookie("session_token")
-		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+
+		if err != nil || sessionToken == "" {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, web.NewUnauthorized("session token is empty"))
 			return
 		}
 
 		tokenClaims := &domain.JwtCustomClaims{}
 		token, err := jwt.ParseWithClaims(sessionToken, tokenClaims, func(token *jwt.Token) (any, error) {
-			return domain.JwtKey, nil
+			return domain.JwtKey, err
 		})
 
 		if err != nil {
