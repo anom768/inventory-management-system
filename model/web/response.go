@@ -13,7 +13,7 @@ func NewOk(message string) *OK {
 }
 
 type Created struct {
-	Code    uint   `json:"code"`
+	Code    int    `json:"code"`
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
@@ -23,7 +23,7 @@ func NewCreated(message string) *Created {
 }
 
 type BadRequestResponse struct {
-	Code    uint   `json:"code"`
+	Code    int    `json:"code"`
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
@@ -33,7 +33,7 @@ func NewBadRequestResponse(message string) *BadRequestResponse {
 }
 
 type Unauthorized struct {
-	Code    uint   `json:"code"`
+	Code    int    `json:"code"`
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
@@ -43,7 +43,7 @@ func NewUnauthorized(message string) *Unauthorized {
 }
 
 type InternalServerError struct {
-	Code    uint   `json:"code"`
+	Code    int    `json:"code"`
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
