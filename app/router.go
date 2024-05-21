@@ -43,3 +43,11 @@ func ItemRouter(apiServer *gin.Engine, itemController controller.ItemController)
 
 	return apiServer
 }
+
+func ActivityRouter(apiServer *gin.Engine, activityController controller.ActivityController) *gin.Engine {
+	activity := apiServer.Group("/api/v1")
+	activity.Use(middleware.Auth())
+	activity.GET("/activities", activityController.GetAll)
+
+	return apiServer
+}
