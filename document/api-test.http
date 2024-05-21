@@ -1,0 +1,22 @@
+# USER CONTROLLER
+# --- REGISTER
+# --- --- (register success)
+POST http://localhost:8080/api/v1/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+###
+POST http://localhost:8080/api/v1/users
+Content-Type: application/json
+Set-Cookie: http-client-cookies
+
+{
+  "full_name": "Bangkit",
+  "username": "bangkit",
+  "password": "rahasia123",
+  "role": "user"
+}

@@ -61,3 +61,13 @@ type ResponseModel struct {
 func NewResponseModel(data any) *ResponseModel {
 	return &ResponseModel{http.StatusOK, "status ok", data}
 }
+
+type NotFoundResponse struct {
+	Code    int    `json:"code"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+func NewNotFoundResponse(message string) *NotFoundResponse {
+	return &NotFoundResponse{http.StatusNotFound, "status not found", message}
+}
