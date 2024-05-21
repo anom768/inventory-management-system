@@ -34,15 +34,15 @@ func login(mux *gin.Engine, userRepository repository.UserRepository) *http.Cook
 		Password: pwd,
 	})
 
-	login := web.UserLoginRequest{
+	loginR := web.UserLoginRequest{
 		Username: "testing",
 		Password: "testing123",
 	}
 
-	body, _ := json.Marshal(login)
+	body, _ := json.Marshal(loginR)
 
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest("POST", "/api/v1/users/login", bytes.NewReader(body))
+	r := httptest.NewRequest("POST", "/api/v1/login", bytes.NewReader(body))
 	r.Header.Set("Content-Type", "application/json")
 	mux.ServeHTTP(w, r)
 
@@ -92,7 +92,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 		sessionRepository = repository.NewSessionRepository(connection)
 		userService = service.NewUserService(userRepository, sessionRepository, validate)
 		categoryService = service.NewCategoryService(categoryRepository, validate)
-		itemService = service.NewItemService(itemRepository, validate)
+		itemService = service.NewItemService(itemRepository, activityRepository, validate)
 		activityService = service.NewActivityService(activityRepository, validate)
 		userController = controller.NewUserController(userService, validate)
 
@@ -793,7 +793,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(user.Username).To(Equal(request.Username))
 						Expect(user.FullName).To(Equal(request.FullName))
-						Expect(true).To(Equal(checkPasswordHash(request.Password, user.Password)))
+						Expect(user.Password).To(Equal("-"))
 						Expect(user.Role).To(Equal(request.Role))
 
 						err = db.Reset(connection, "users")
@@ -963,7 +963,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Expect(user.Username).To(Equal(update.Username))
 						Expect(user.Role).To(Equal(update.Role))
 						Expect(user.FullName).To(Equal(update.FullName))
-						Expect(true).To(Equal(checkPasswordHash(update.Password, user.Password)))
+						Expect(user.Password).To(Equal("-"))
 
 						err = db.Reset(connection, "users")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1550,7 +1550,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Expect(err).ShouldNot(HaveOccurred())
 
 						recorder := httptest.NewRecorder()
-						request := httptest.NewRequest(http.MethodPost, "/api/v1/users/register", bytes.NewReader(body))
+						request := httptest.NewRequest(http.MethodPost, "/api/v1/users", bytes.NewReader(body))
 						request.Header.Set("Content-Type", "application/json")
 						request.AddCookie(login(apiServer, userRepository))
 
@@ -1582,7 +1582,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Expect(err).ShouldNot(HaveOccurred())
 
 						recorder := httptest.NewRecorder()
-						request := httptest.NewRequest(http.MethodPost, "/api/v1/users/register", bytes.NewReader(body))
+						request := httptest.NewRequest(http.MethodPost, "/api/v1/users", bytes.NewReader(body))
 						request.Header.Set("Content-Type", "application/json")
 
 						apiServer.ServeHTTP(recorder, request)
@@ -1613,7 +1613,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Expect(err).ShouldNot(HaveOccurred())
 
 						recorder := httptest.NewRecorder()
-						request := httptest.NewRequest(http.MethodPost, "/api/v1/users/register", bytes.NewReader(body))
+						request := httptest.NewRequest(http.MethodPost, "/api/v1/users", bytes.NewReader(body))
 						request.Header.Set("Content-Type", "application/json")
 						request.AddCookie(login(apiServer, userRepository))
 
@@ -1624,7 +1624,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(response.Code).To(Equal(http.StatusBadRequest))
 						Expect(response.Status).To(Equal("status bad request"))
-						Expect(response.Message).To(Equal("invalid body request"))
+						Expect(response.Message).To(Equal("validation error"))
 
 						err = db.Reset(connection, "users")
 						err = db.Reset(connection, "sessions")
