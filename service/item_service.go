@@ -18,11 +18,11 @@ type ItemService interface {
 
 type itemServiceImpl struct {
 	repository.ItemRepository
-	repository.ActivityRepository
+	repository.ReportRepository
 	*validator.Validate
 }
 
-func NewItemService(itemRepository repository.ItemRepository, activityRepository repository.ActivityRepository, validate *validator.Validate) ItemService {
+func NewItemService(itemRepository repository.ItemRepository, activityRepository repository.ReportRepository, validate *validator.Validate) ItemService {
 	return &itemServiceImpl{itemRepository, activityRepository, validate}
 }
 
@@ -43,12 +43,15 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) (domain.Items, 
 		return domain.Items{}, err
 	}
 
-	i.ActivityRepository.Add(domain.Activities{
+	_, err = i.ReportRepository.AddActivity(domain.Activities{
 		ItemID:         item.ID,
 		Action:         "POST",
 		QuantityChange: item.Quantity,
 		Timestamp:      time.Now(),
 	})
+	if err != nil {
+		return domain.Items{}, err
+	}
 
 	return item, nil
 }
@@ -89,7 +92,7 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) (domai
 	//} else {
 	//	quantityChange = 0
 	//}
-	if _, err := i.ActivityRepository.Add(domain.Activities{
+	if _, err := i.ReportRepository.AddActivity(domain.Activities{
 		ItemID:         item.ID,
 		Action:         "UPDATE",
 		QuantityChange: quantityChange,
@@ -106,7 +109,7 @@ func (i *itemServiceImpl) Delete(itemID int) error {
 		return err
 	}
 
-	if _, err := i.ActivityRepository.Add(domain.Activities{
+	if _, err := i.ReportRepository.AddActivity(domain.Activities{
 		ItemID:         itemID,
 		Action:         "DELETE",
 		QuantityChange: 0,

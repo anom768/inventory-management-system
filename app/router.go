@@ -44,10 +44,11 @@ func ItemRouter(apiServer *gin.Engine, itemController controller.ItemController)
 	return apiServer
 }
 
-func ActivityRouter(apiServer *gin.Engine, activityController controller.ActivityController) *gin.Engine {
-	activity := apiServer.Group("/api/v1")
-	activity.Use(middleware.Auth())
-	activity.GET("/activities", activityController.GetAll)
+func ReportRouter(apiServer *gin.Engine, reportController controller.ReportController) *gin.Engine {
+	report := apiServer.Group("/api/v1/reports")
+	report.Use(middleware.Auth())
+	report.GET("/activity", reportController.GetAllActivity)
+	report.GET("/stock/:itemStock", reportController.ReportStock)
 
 	return apiServer
 }

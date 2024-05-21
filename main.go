@@ -16,16 +16,16 @@ func main() {
 	var apiServer *gin.Engine
 	var validate validator.Validate
 	var userRepository repository.UserRepository
-	var activityRepository repository.ActivityRepository
+	var reportRepository repository.ReportRepository
 	var sessionRepository repository.SessionRepository
 	var categoryRepository repository.CategoryRepository
 	var itemRepository repository.ItemRepository
 	var userService service.UserService
-	var activityService service.ActivityService
+	var reportService service.ReportService
 	var categoryService service.CategoryService
 	var itemService service.ItemService
 	var userController controller.UserController
-	var activityController controller.ActivityController
+	var reportController controller.ReportController
 	var categoryController controller.CategoryController
 	var itemController controller.ItemController
 
@@ -51,16 +51,16 @@ func main() {
 
 	validate = *validator.New()
 	userRepository = repository.NewUserRepository(connection)
-	activityRepository = repository.NewActivityRepository(connection)
+	reportRepository = repository.NewReportRepository(connection)
 	sessionRepository = repository.NewSessionRepository(connection)
 	categoryRepository = repository.NewCategoryRepository(connection)
 	itemRepository = repository.NewItemRepository(connection)
 	userService = service.NewUserService(userRepository, sessionRepository, &validate)
-	activityService = service.NewActivityService(activityRepository, &validate)
+	reportService = service.NewReportService(reportRepository, &validate)
 	categoryService = service.NewCategoryService(categoryRepository, &validate)
-	itemService = service.NewItemService(itemRepository, activityRepository, &validate)
+	itemService = service.NewItemService(itemRepository, reportRepository, &validate)
 	userController = controller.NewUserController(userService, &validate)
-	activityController = controller.NewActivityController(activityService)
+	reportController = controller.NewReportController(reportService)
 	categoryController = controller.NewCategoryController(categoryService, &validate)
 	itemController = controller.NewItemController(itemService, &validate)
 
@@ -72,7 +72,7 @@ func main() {
 	app.UserRouter(apiServer, userController)
 	app.CategoryRouter(apiServer, categoryController)
 	app.ItemRouter(apiServer, itemController)
-	app.ActivityRouter(apiServer, activityController)
+	app.ReportRouter(apiServer, reportController)
 	err = apiServer.Run(":8080")
 	if err != nil {
 		panic(err)
