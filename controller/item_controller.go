@@ -48,7 +48,7 @@ func (i *itemControllerImpl) Add(c *gin.Context) {
 }
 
 func (i *itemControllerImpl) Update(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("itemID"))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid id"))
 		return
@@ -76,7 +76,7 @@ func (i *itemControllerImpl) Update(c *gin.Context) {
 }
 
 func (i *itemControllerImpl) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("itemID"))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid id"))
 		return
@@ -92,7 +92,7 @@ func (i *itemControllerImpl) Delete(c *gin.Context) {
 }
 
 func (i *itemControllerImpl) GetByID(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("itemID"))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid id"))
 		return
