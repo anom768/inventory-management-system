@@ -61,12 +61,12 @@ var _ = Describe("Digital Inventory Management API", func() {
 	var userRepository repository.UserRepository
 	var categoryRepository repository.CategoryRepository
 	var itemRepository repository.ItemRepository
-	var activityRepository repository.ActivityRepository
+	var reportRepository repository.ReportRepository
 	var sessionRepository repository.SessionRepository
 	var userService service.UserService
 	var categoryService service.CategoryService
 	var itemService service.ItemService
-	var activityService service.ActivityService
+	var reportService service.ReportService
 	var userController controller.UserController
 
 	db := app.NewDB()
@@ -88,12 +88,12 @@ var _ = Describe("Digital Inventory Management API", func() {
 		userRepository = repository.NewUserRepository(connection)
 		categoryRepository = repository.NewCategoryRepository(connection)
 		itemRepository = repository.NewItemRepository(connection)
-		activityRepository = repository.NewActivityRepository(connection)
+		reportRepository = repository.NewReportRepository(connection)
 		sessionRepository = repository.NewSessionRepository(connection)
 		userService = service.NewUserService(userRepository, sessionRepository, validate)
 		categoryService = service.NewCategoryService(categoryRepository, validate)
-		itemService = service.NewItemService(itemRepository, activityRepository, validate)
-		activityService = service.NewActivityService(activityRepository, validate)
+		itemService = service.NewItemService(itemRepository, reportRepository, validate)
+		reportService = service.NewReportService(reportRepository, validate)
 		userController = controller.NewUserController(userService, validate)
 
 		apiServer = gin.New()
@@ -521,7 +521,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 		Describe("Item Repository", func() {
 			When("add new activity to activities table in database postgres", func() {
 				It("should save data activity to activities table in database postgres", func() {
-					_, err := activityRepository.Add(model.Activities{
+					_, err := reportRepository.AddActivity(model.Activities{
 						ItemID:         1,
 						Action:         "POST",
 						QuantityChange: 5,
@@ -536,7 +536,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("get all data activities table in database postgres", func() {
 				It("should return all data activities", func() {
-					_, err := activityRepository.Add(model.Activities{
+					_, err := reportRepository.AddActivity(model.Activities{
 						ItemID:         1,
 						Action:         "POST",
 						QuantityChange: 5,
@@ -544,7 +544,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					_, err = activityRepository.Add(model.Activities{
+					_, err = reportRepository.AddActivity(model.Activities{
 						ItemID:         2,
 						Action:         "POST",
 						QuantityChange: -2,
@@ -552,7 +552,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					results, err := activityRepository.GetAll()
+					results, err := reportRepository.GetAllActivity()
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(results).Should(HaveLen(2))
 
@@ -1447,71 +1447,30 @@ var _ = Describe("Digital Inventory Management API", func() {
 			########################################################################################
 		*/
 		Describe("Activity Service", func() {
-			Describe("Add Activity", func() {
-				When("add activity is successful", func() {
-					It("should add activity to database", func() {
-						request := web.ActivityAddRequest{
-							ItemID:        1,
-							Action:        "PUT",
-							QuantityChane: -5,
-							Timestamp:     time.Now(),
-							PerformedBy:   1,
-						}
-						activity, err := activityService.Add(request)
-						Expect(err).ShouldNot(HaveOccurred())
-						Expect(activity.ItemID).To(Equal(request.ItemID))
-						Expect(activity.Action).To(Equal(request.Action))
-						Expect(activity.QuantityChange).To(Equal(request.QuantityChane))
-						Expect(activity.Timestamp).To(Equal(request.Timestamp))
-						Expect(activity.PerformedBy).To(Equal(request.PerformedBy))
-
-						err = db.Reset(connection, "activities")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-
-				When("add activity with blank field", func() {
-					It("should return error", func() {
-						request := web.ActivityAddRequest{
-							Action:        "",
-							QuantityChane: -5,
-							Timestamp:     time.Now(),
-							PerformedBy:   1,
-						}
-						activity, err := activityService.Add(request)
-						Expect(err).Should(HaveOccurred())
-						Expect(activity).To(Equal(model.Activities{}))
-
-						err = db.Reset(connection, "activities")
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-			})
-
 			Describe("Get All", func() {
 				When("get all data activity success", func() {
 					It("should return all activity data", func() {
-						request := web.ActivityAddRequest{
-							ItemID:        1,
-							Action:        "PUT",
-							QuantityChane: -5,
-							Timestamp:     time.Now(),
-							PerformedBy:   1,
+						request := model.Activities{
+							ItemID:         1,
+							Action:         "PUT",
+							QuantityChange: 5,
+							Timestamp:      time.Now(),
+							PerformedBy:    1,
 						}
-						_, err := activityService.Add(request)
+						_, err := reportRepository.AddActivity(request)
 						Expect(err).ShouldNot(HaveOccurred())
 
-						request2 := web.ActivityAddRequest{
-							ItemID:        2,
-							Action:        "PUT",
-							QuantityChane: 10,
-							Timestamp:     time.Now(),
-							PerformedBy:   1,
+						request2 := model.Activities{
+							ItemID:         1,
+							Action:         "PUT",
+							QuantityChange: 5,
+							Timestamp:      time.Now(),
+							PerformedBy:    1,
 						}
-						_, err = activityService.Add(request2)
+						_, err = reportRepository.AddActivity(request2)
 						Expect(err).ShouldNot(HaveOccurred())
 
-						activity, err := activityService.GetAll()
+						activity, err := reportService.GetAllActivity()
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(activity).To(HaveLen(2))
 
@@ -1522,7 +1481,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 				When("get all data activity empty", func() {
 					It("should return empty activity data", func() {
-						activities, err := activityService.GetAll()
+						activities, err := reportService.GetAllActivity()
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(activities).To(HaveLen(0))
 
