@@ -10,3 +10,10 @@ type Activities struct {
 	Timestamp      time.Time `gorm:"column:timestamp" json:"timestamp"`
 	PerformedBy    int       `gorm:"column:performed_by" json:"performed_by"`
 }
+
+type ReportStock struct {
+	TotalItems          int     `json:"total_items"`
+	TotalQuantity       int     `json:"total_quantity"`
+	TotalInventoryValue float64 `json:"total_inventory_value"`
+	Items               []Items `json:"items"`
+}
