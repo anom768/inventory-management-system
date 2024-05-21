@@ -18,10 +18,13 @@ func main() {
 	var userRepository repository.UserRepository
 	var sessionRepository repository.SessionRepository
 	var categoryRepository repository.CategoryRepository
+	var itemRepository repository.ItemRepository
 	var userService service.UserService
 	var categoryService service.CategoryService
+	var itemService service.ItemService
 	var userController controller.UserController
 	var categoryController controller.CategoryController
+	var itemController controller.ItemController
 
 	dbCredential := domain.Credential{
 		Host:         "localhost",
@@ -47,10 +50,13 @@ func main() {
 	userRepository = repository.NewUserRepository(connection)
 	sessionRepository = repository.NewSessionRepository(connection)
 	categoryRepository = repository.NewCategoryRepository(connection)
+	itemRepository = repository.NewItemRepository(connection)
 	userService = service.NewUserService(userRepository, sessionRepository, &validate)
 	categoryService = service.NewCategoryService(categoryRepository, &validate)
+	itemService = service.NewItemService(itemRepository, &validate)
 	userController = controller.NewUserController(userService, &validate)
 	categoryController = controller.NewCategoryController(categoryService, &validate)
+	itemController = controller.NewItemController(itemService, &validate)
 
 	postgres.Reset(connection, "users")
 	//postgres.Reset(connection, "sessions")
@@ -59,6 +65,7 @@ func main() {
 	apiServer = gin.New()
 	app.UserRouter(apiServer, userController)
 	app.CategoryRouter(apiServer, categoryController)
+	app.ItemRouter(apiServer, itemController)
 	err = apiServer.Run(":8080")
 	if err != nil {
 		panic(err)

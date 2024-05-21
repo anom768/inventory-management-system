@@ -31,3 +31,15 @@ func CategoryRouter(apiServer *gin.Engine, categoryController controller.Categor
 
 	return apiServer
 }
+
+func ItemRouter(apiServer *gin.Engine, itemController controller.ItemController) *gin.Engine {
+	item := apiServer.Group("/api/v1")
+	item.Use(middleware.Auth())
+	item.GET("/items", itemController.GetAll)
+	item.GET("/items/:itemID", itemController.GetByID)
+	item.PUT("/items/:itemID", itemController.Update)
+	item.DELETE("/items/:itemID", itemController.Delete)
+	item.POST("/items", itemController.Add)
+
+	return apiServer
+}
