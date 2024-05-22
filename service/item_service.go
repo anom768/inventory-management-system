@@ -33,11 +33,11 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) (domain.Items, 
 	}
 
 	item, err := i.ItemRepository.Add(domain.Items{
-		Name:        itemAddRequest.Name,
-		CategoryID:  itemAddRequest.CategoryID,
-		Price:       itemAddRequest.Price,
-		Quantity:    itemAddRequest.Quantity,
-		Description: itemAddRequest.Description,
+		Name:          itemAddRequest.Name,
+		CategoryID:    itemAddRequest.CategoryID,
+		Price:         itemAddRequest.Price,
+		Quantity:      itemAddRequest.Quantity,
+		Specification: itemAddRequest.Specification,
 	})
 	if err != nil {
 		return domain.Items{}, err
@@ -68,12 +68,12 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) (domai
 	}
 
 	item, err := i.ItemRepository.Update(domain.Items{
-		ID:          itemUpdateRequest.ID,
-		Name:        itemUpdateRequest.Name,
-		CategoryID:  itemUpdateRequest.CategoryID,
-		Price:       itemUpdateRequest.Price,
-		Quantity:    itemUpdateRequest.Quantity,
-		Description: itemUpdateRequest.Description,
+		ID:            itemUpdateRequest.ID,
+		Name:          itemUpdateRequest.Name,
+		CategoryID:    itemUpdateRequest.CategoryID,
+		Price:         itemUpdateRequest.Price,
+		Quantity:      itemUpdateRequest.Quantity,
+		Specification: itemUpdateRequest.Specification,
 	})
 	if err != nil {
 		return domain.Items{}, err

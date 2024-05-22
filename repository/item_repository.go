@@ -39,7 +39,7 @@ func (i *itemRepositoryImpl) Update(item domain.Items) (domain.Items, error) {
 	newItem.CategoryID = item.CategoryID
 	newItem.Price = item.Price
 	newItem.Quantity = item.Quantity
-	newItem.Description = item.Description
+	newItem.Specification = item.Specification
 	if err := i.DB.Save(&item).Error; err != nil {
 		return domain.Items{}, err
 	}

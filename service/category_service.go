@@ -14,7 +14,7 @@ type CategoryService interface {
 	Delete(categoryID int) error
 	GetAll() ([]domain.Categories, error)
 	GetByID(categoryID int) (domain.Categories, error)
-	CheckAvailable(categoryID int) bool
+	CheckAvailable(name string) bool
 }
 
 type categoryServiceImpl struct {
@@ -32,15 +32,13 @@ func (c *categoryServiceImpl) Add(categoryAddRequest *web.CategoryAddRequest) (d
 		return domain.Categories{}, err
 	}
 
-	result := c.CheckAvailable(categoryAddRequest.ID)
+	result := c.CheckAvailable(categoryAddRequest.Name)
 	if result {
-		return domain.Categories{}, errors.New("category already exists")
+		return domain.Categories{}, errors.New("category already exist")
 	}
 
 	category, err := c.CategoryRepository.Add(domain.Categories{
-		ID:            categoryAddRequest.ID,
-		Name:          categoryAddRequest.Name,
-		Specification: categoryAddRequest.Specification,
+		Name: categoryAddRequest.Name,
 	})
 	if err != nil {
 		return domain.Categories{}, err
@@ -56,9 +54,8 @@ func (c *categoryServiceImpl) Update(categoryUpdateRequest web.CategoryUpdateReq
 	}
 
 	category, err := c.CategoryRepository.Update(domain.Categories{
-		ID:            categoryUpdateRequest.ID,
-		Name:          categoryUpdateRequest.Name,
-		Specification: categoryUpdateRequest.Specification,
+		ID:   categoryUpdateRequest.ID,
+		Name: categoryUpdateRequest.Name,
 	})
 	if err != nil {
 		return domain.Categories{}, err
@@ -79,8 +76,8 @@ func (c *categoryServiceImpl) GetByID(categoryID int) (domain.Categories, error)
 	return c.CategoryRepository.GetByID(categoryID)
 }
 
-func (c *categoryServiceImpl) CheckAvailable(categoryID int) bool {
-	_, err := c.CategoryRepository.GetByID(categoryID)
+func (c *categoryServiceImpl) CheckAvailable(name string) bool {
+	_, err := c.CategoryRepository.GetByName(name)
 	if err != nil {
 		return false
 	}

@@ -19,7 +19,7 @@ entity item {
     *category_id : INTEGER
     *quantity : INTEGER
     *price : FLOAT
-    description : TEXT
+    specification : TEXT
     created_at : TIMESTAMP
     updated_at : TIMESTAMP
     deleted_at : TIMESTAMP
@@ -29,7 +29,6 @@ entity category {
     *id : INTEGER <<key>>
     --
     *name : STRING
-    *specification : TEXT
     created_at : TIMESTAMP
     updated_at : TIMESTAMP
     deleted_at : TIMESTAMP
