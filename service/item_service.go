@@ -4,15 +4,16 @@ import (
 	"inventory-management-system/model/domain"
 	"inventory-management-system/model/web"
 	"inventory-management-system/repository"
+	"net/http"
 	"time"
 )
 
 type ItemService interface {
-	Add(itemAddRequest web.ItemAddRequest) error
-	Update(itemUpdateRequest web.ItemUpdateRequest) error
-	Delete(itemID int) error
-	GetAll() ([]domain.Items, error)
-	GetByID(itemID int) (domain.Items, error)
+	Add(itemAddRequest web.ItemAddRequest) web.ErrorResponse
+	Update(itemUpdateRequest web.ItemUpdateRequest) web.ErrorResponse
+	Delete(itemID int) web.ErrorResponse
+	GetAll() ([]domain.Items, web.ErrorResponse)
+	GetByID(itemID int) (domain.Items, web.ErrorResponse)
 }
 
 type itemServiceImpl struct {
@@ -24,7 +25,7 @@ func NewItemService(itemRepository repository.ItemRepository, activityRepository
 	return &itemServiceImpl{itemRepository, activityRepository}
 }
 
-func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) error {
+func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorResponse {
 	item := domain.Items{
 		Name:          itemAddRequest.Name,
 		CategoryID:    itemAddRequest.CategoryID,
@@ -34,7 +35,11 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) error {
 	}
 	err := i.ItemRepository.Add(item)
 	if err != nil {
-		return err
+		return web.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Status:  "internal server error",
+			Message: err.Error(),
+		}
 	}
 
 	err = i.ReportRepository.AddActivity(domain.Activities{
@@ -44,16 +49,24 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) error {
 		Timestamp:      time.Now(),
 	})
 	if err != nil {
-		return err
+		return web.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Status:  "internal server error",
+			Message: err.Error(),
+		}
 	}
 
-	return nil
+	return web.ErrorResponse{}
 }
 
-func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) error {
+func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.ErrorResponse {
 	itemDB, err := i.ItemRepository.GetByItemID(itemUpdateRequest.ID)
 	if err != nil {
-		return err
+		return web.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Status:  "internal server error",
+			Message: err.Error(),
+		}
 	}
 
 	item := domain.Items{
@@ -66,7 +79,11 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) error 
 	}
 	err = i.ItemRepository.Update(item)
 	if err != nil {
-		return err
+		return web.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Status:  "internal server error",
+			Message: err.Error(),
+		}
 	}
 
 	var quantityChange int
@@ -76,31 +93,71 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) error 
 		quantityChange = itemUpdateRequest.Quantity - itemDB.Quantity
 	}
 
-	return i.ReportRepository.AddActivity(domain.Activities{
+	err = i.ReportRepository.AddActivity(domain.Activities{
 		ItemID:         item.ID,
 		Action:         "UPDATE",
 		QuantityChange: quantityChange,
 		Timestamp:      time.Now(),
 	})
-}
-
-func (i *itemServiceImpl) Delete(itemID int) error {
-	if err := i.ItemRepository.Delete(itemID); err != nil {
-		return err
+	if err != nil {
+		return web.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Status:  "internal server error",
+			Message: err.Error(),
+		}
 	}
 
-	return i.ReportRepository.AddActivity(domain.Activities{
+	return web.ErrorResponse{}
+}
+
+func (i *itemServiceImpl) Delete(itemID int) web.ErrorResponse {
+	if err := i.ItemRepository.Delete(itemID); err != nil {
+		return web.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Status:  "internal server error",
+			Message: err.Error(),
+		}
+	}
+
+	err := i.ReportRepository.AddActivity(domain.Activities{
 		ItemID:         itemID,
 		Action:         "DELETE",
 		QuantityChange: 0,
 		Timestamp:      time.Now(),
 	})
+	if err != nil {
+		return web.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Status:  "internal server error",
+			Message: err.Error(),
+		}
+	}
+
+	return web.ErrorResponse{}
 }
 
-func (i *itemServiceImpl) GetAll() ([]domain.Items, error) {
-	return i.ItemRepository.GetAll()
+func (i *itemServiceImpl) GetAll() ([]domain.Items, web.ErrorResponse) {
+	items, err := i.ItemRepository.GetAll()
+	if err != nil {
+		return nil, web.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Status:  "internal server error",
+			Message: err.Error(),
+		}
+	}
+
+	return items, web.ErrorResponse{}
 }
 
-func (i *itemServiceImpl) GetByID(itemID int) (domain.Items, error) {
-	return i.ItemRepository.GetByItemID(itemID)
+func (i *itemServiceImpl) GetByID(itemID int) (domain.Items, web.ErrorResponse) {
+	item, err := i.ItemRepository.GetByItemID(itemID)
+	if err != nil {
+		return domain.Items{}, web.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Status:  "internal server error",
+			Message: err.Error(),
+		}
+	}
+
+	return item, web.ErrorResponse{}
 }

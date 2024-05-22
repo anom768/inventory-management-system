@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"inventory-management-system/helper"
 	"inventory-management-system/model/web"
 	"inventory-management-system/service"
 	"net/http"
@@ -28,98 +29,125 @@ func NewCategoryController(categoryService service.CategoryService, validate *va
 
 func (cc *categoryControllerImpl) Add(c *gin.Context) {
 	var categoryAddRequest web.CategoryAddRequest
-	if err := c.ShouldBindJSON(&categoryAddRequest); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
-		return
-	}
+	helper.ReadFromRequestBody(c, &categoryAddRequest)
 
 	err := cc.Validate.Struct(categoryAddRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("validation error"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, "validation error")
 		return
 	}
 
-	err = cc.CategoryService.Add(&categoryAddRequest)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	errResponse := cc.CategoryService.Add(&categoryAddRequest)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusCreated, web.NewCreated("add category successfully"))
+	c.JSON(http.StatusCreated, web.SuccessResponse{
+		Code:    http.StatusCreated,
+		Status:  "status created",
+		Message: "success add category",
+	})
 }
 
 func (cc *categoryControllerImpl) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("categoryID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid id"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "invalid id",
+		})
 		return
 	}
 
 	var categoryUpdateRequest web.CategoryUpdateRequest
-	if err := c.ShouldBindJSON(&categoryUpdateRequest); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
-		return
-	}
+	helper.ReadFromRequestBody(c, categoryUpdateRequest)
 
 	categoryUpdateRequest.ID = id
 	err = cc.Validate.Struct(categoryUpdateRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("validation error"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "invalid id",
+		})
 		return
 	}
 
-	err = cc.CategoryService.Update(categoryUpdateRequest)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	errResponse := cc.CategoryService.Update(categoryUpdateRequest)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusOK, web.NewOk("update category successfully"))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "success update category",
+	})
 }
 
 func (cc *categoryControllerImpl) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("categoryID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid id"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "invalid id",
+		})
 		return
 	}
 
-	err = cc.CategoryService.Delete(id)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	errResponse := cc.CategoryService.Delete(id)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusOK, web.NewOk("delete category successfully"))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "success delete category",
+	})
 }
 
 func (cc *categoryControllerImpl) GetAll(c *gin.Context) {
-	categories, err := cc.CategoryService.GetAll()
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	categories, errResponse := cc.CategoryService.GetAll()
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	if len(categories) == 0 {
-		c.AbortWithStatusJSON(http.StatusNotFound, web.NewNotFoundResponse("record not found"))
-		return
-	}
-
-	c.JSON(http.StatusOK, web.NewResponseModel(categories))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "success get all category",
+		Data:    categories,
+	})
 }
 
 func (cc *categoryControllerImpl) GetByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("categoryID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid id"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "invalid id",
+		})
 		return
 	}
 
-	category, err := cc.CategoryService.GetByID(id)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	category, errResponse := cc.CategoryService.GetByID(id)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusOK, web.NewResponseModel(category))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "success get category",
+		Data:    category,
+	})
 }

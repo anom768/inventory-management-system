@@ -23,35 +23,34 @@ func NewReportController(reportService service.ReportService) ReportController {
 }
 
 func (r *reportControllerImpl) GetAllActivity(c *gin.Context) {
-	activities, err := r.ReportService.GetAllActivity()
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	activities, errResponse := r.ReportService.GetAllActivity()
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	if len(activities) == 0 {
-		c.AbortWithStatusJSON(http.StatusNotFound, web.NewNotFoundResponse("activity not found"))
-		return
-	}
-
-	c.JSON(http.StatusOK, web.NewResponseModel(activities))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "success get all activities",
+		Data:    activities,
+	})
 }
 
 func (r *reportControllerImpl) ReportStock(c *gin.Context) {
 	totalStock, err := strconv.Atoi(c.Param("itemStock"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid item stock"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: err.Error(),
+		})
 		return
 	}
 
-	items, err := r.ReportService.ReportStock(totalStock)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
-		return
-	}
-
-	if len(items) == 0 {
-		c.AbortWithStatusJSON(http.StatusNotFound, web.NewNotFoundResponse("item not found"))
+	items, errResponse := r.ReportService.ReportStock(totalStock)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
@@ -63,5 +62,10 @@ func (r *reportControllerImpl) ReportStock(c *gin.Context) {
 	}
 
 	reportStock.Items = items
-	c.JSON(http.StatusOK, web.NewResponseModel(reportStock))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "success get all report stock",
+		Data:    reportStock,
+	})
 }

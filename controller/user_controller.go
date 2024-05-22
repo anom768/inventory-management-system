@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"inventory-management-system/helper"
 	"inventory-management-system/model/web"
 	"inventory-management-system/service"
 	"net/http"
@@ -29,44 +30,48 @@ func NewUserController(userService service.UserService, validate *validator.Vali
 
 func (u *userControllerImpl) Register(c *gin.Context) {
 	var userRegisterRequest web.UserRegisterRequest
-	err := c.ShouldBind(&userRegisterRequest)
+	helper.ReadFromRequestBody(c, &userRegisterRequest)
+
+	err := u.Validate.Struct(userRegisterRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "validation error: " + err.Error(),
+		})
 		return
 	}
 
-	err = u.Validate.Struct(userRegisterRequest)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("validation error"))
+	errResponse := u.UserService.Register(&userRegisterRequest)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	err = u.UserService.Register(&userRegisterRequest)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
-		return
-	}
-
-	c.JSON(http.StatusCreated, web.NewCreated("registration successful"))
+	c.JSON(http.StatusCreated, web.SuccessResponse{
+		Code:    http.StatusCreated,
+		Status:  "status created",
+		Message: "register user success",
+	})
 }
 
 func (u *userControllerImpl) Login(c *gin.Context) {
 	var userLoginRequest web.UserLoginRequest
-	err := c.ShouldBindJSON(&userLoginRequest)
+	helper.ReadFromRequestBody(c, &userLoginRequest)
+
+	err := u.Validate.Struct(userLoginRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "validation error: " + err.Error(),
+		})
 		return
 	}
 
-	err = u.Validate.Struct(userLoginRequest)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
-		return
-	}
-
-	tokenString, err := u.UserService.Login(&userLoginRequest)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	tokenString, errResponse := u.UserService.Login(&userLoginRequest)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
@@ -76,66 +81,83 @@ func (u *userControllerImpl) Login(c *gin.Context) {
 		Expires: time.Now().Add(24 * time.Hour),
 	})
 
-	c.JSON(http.StatusOK, web.NewOk("login successful"))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "login user success",
+	})
 }
 
 func (u *userControllerImpl) Update(c *gin.Context) {
 	var userUpdateRequest web.UserUpdateRequest
 	userUpdateRequest.Username = c.Param("username")
-	err := c.ShouldBind(&userUpdateRequest)
+	helper.ReadFromRequestBody(c, &userUpdateRequest)
+
+	err := u.Validate.Struct(userUpdateRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "validation error: " + err.Error(),
+		})
 		return
 	}
 
-	err = u.Validate.Struct(userUpdateRequest)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
+	errResponse := u.UserService.Update(userUpdateRequest)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	err = u.UserService.Update(userUpdateRequest)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
-		return
-	}
-
-	c.JSON(http.StatusOK, web.NewOk("update successful"))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "login user success",
+	})
 }
 
 func (u *userControllerImpl) Delete(c *gin.Context) {
 	username := c.Param("username")
-	err := u.UserService.Delete(username)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	errResponse := u.UserService.Delete(username)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusOK, web.NewOk("delete successful"))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "delete user success",
+	})
 }
 
 func (u *userControllerImpl) GetAll(c *gin.Context) {
-	users, err := u.UserService.GetAll()
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	users, errResponse := u.UserService.GetAll()
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	if len(users) == 0 {
-		c.AbortWithStatusJSON(http.StatusNotFound, web.NewNotFoundResponse("record not found"))
-		return
-	}
-
-	c.JSON(http.StatusOK, web.NewResponseModel(users))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "get all user success",
+		Data:    users,
+	})
 }
 
 func (u *userControllerImpl) GetByUsername(c *gin.Context) {
 	username := c.Param("username")
-	user, err := u.UserService.GetByUsername(username)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	user, errResponse := u.UserService.GetByUsername(username)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusOK, web.NewResponseModel(user))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "get user success",
+		Data:    user,
+	})
 }
