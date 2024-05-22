@@ -76,4 +76,8 @@ SELECT * FROM items;
 SELECT * FROM categories;
 SELECT * FROM activities;
 SELECT * FROM sessions;
+TRUNCATE TABLE users;
+TRUNCATE TABLE items;
+TRUNCATE TABLE categories;
+TRUNCATE TABLE activities;
 TRUNCATE TABLE sessions;

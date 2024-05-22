@@ -22,32 +22,29 @@ type UserUpdateRequest struct {
 }
 
 type CategoryAddRequest struct {
-	ID            int    `json:"id" validate:"required"`
-	Name          string `json:"name" validate:"required,max=255"`
-	Specification string `json:"specification"`
+	Name string `json:"name" validate:"required,max=255"`
 }
 
 type CategoryUpdateRequest struct {
-	ID            int    `json:"id" validate:"required"`
-	Name          string `json:"name" validate:"required,max=255"`
-	Specification string `json:"specification"`
+	ID   int    `json:"id" validate:"required"`
+	Name string `json:"name" validate:"required,max=255"`
 }
 
 type ItemAddRequest struct {
-	Name        string  `json:"name" validate:"required,max=255"`
-	CategoryID  int     `json:"category_id" validate:"required"`
-	Quantity    int     `json:"quantity" validate:"required"`
-	Price       float64 `json:"price" validate:"required"`
-	Description string  `json:"description" validate:"required,max=255"`
+	Name          string  `json:"name" validate:"required,max=255"`
+	CategoryID    int     `json:"category_id" validate:"required"`
+	Quantity      int     `json:"quantity" validate:"required"`
+	Price         float64 `json:"price" validate:"required"`
+	Specification string  `json:"specification" validate:"required,max=255"`
 }
 
 type ItemUpdateRequest struct {
-	ID          int     `json:"id" validate:"required"`
-	Name        string  `json:"name" validate:"required,max=255"`
-	CategoryID  int     `json:"category_id" validate:"required"`
-	Quantity    int     `json:"quantity" validate:"required"`
-	Price       float64 `json:"price" validate:"required"`
-	Description string  `json:"description" validate:"required,max=255"`
+	ID            int     `json:"id" validate:"required"`
+	Name          string  `json:"name" validate:"required,max=255"`
+	CategoryID    int     `json:"category_id" validate:"required"`
+	Quantity      int     `json:"quantity" validate:"required"`
+	Price         float64 `json:"price" validate:"required"`
+	Specification string  `json:"specification" validate:"required,max=255"`
 }
 
 type ActivityAddRequest struct {

@@ -11,6 +11,7 @@ type CategoryRepository interface {
 	Delete(categoryID int) error
 	GetAll() ([]domain.Categories, error)
 	GetByID(categoryID int) (domain.Categories, error)
+	GetByName(name string) (domain.Categories, error)
 }
 
 type categoryRepositoryImpl struct {
@@ -36,7 +37,6 @@ func (c *categoryRepositoryImpl) Update(category domain.Categories) (domain.Cate
 	}
 
 	newCategory.Name = category.Name
-	newCategory.Specification = category.Specification
 	if err := c.DB.Save(&category).Error; err != nil {
 		return domain.Categories{}, err
 	}
@@ -69,6 +69,15 @@ func (c *categoryRepositoryImpl) GetAll() ([]domain.Categories, error) {
 func (c *categoryRepositoryImpl) GetByID(categoryID int) (domain.Categories, error) {
 	category := domain.Categories{}
 	if err := c.DB.Where("id = ?", categoryID).First(&category).Error; err != nil {
+		return domain.Categories{}, err
+	}
+
+	return category, nil
+}
+
+func (c *categoryRepositoryImpl) GetByName(name string) (domain.Categories, error) {
+	category := domain.Categories{}
+	if err := c.DB.Where("name = ?", name).First(&category).Error; err != nil {
 		return domain.Categories{}, err
 	}
 
