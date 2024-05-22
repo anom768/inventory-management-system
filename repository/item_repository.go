@@ -6,8 +6,8 @@ import (
 )
 
 type ItemRepository interface {
-	Add(item domain.Items) (domain.Items, error)
-	Update(item domain.Items) (domain.Items, error)
+	Add(item domain.Items) error
+	Update(item domain.Items) error
 	Delete(itemID int) error
 	GetAll() ([]domain.Items, error)
 	GetByItemID(itemID int) (domain.Items, error)
@@ -22,29 +22,21 @@ func NewItemRepository(db *gorm.DB) ItemRepository {
 	return &itemRepositoryImpl{db}
 }
 
-func (i *itemRepositoryImpl) Add(item domain.Items) (domain.Items, error) {
-	if err := i.DB.Create(&item).Error; err != nil {
-		return domain.Items{}, err
-	}
-
-	return item, nil
+func (i *itemRepositoryImpl) Add(item domain.Items) error {
+	return i.DB.Create(&item).Error
 }
 
-func (i *itemRepositoryImpl) Update(item domain.Items) (domain.Items, error) {
+func (i *itemRepositoryImpl) Update(item domain.Items) error {
 	newItem := domain.Items{}
 	if err := i.DB.First(&newItem, "id = ?", item.ID).Error; err != nil {
-		return domain.Items{}, err
+		return err
 	}
 
 	newItem.CategoryID = item.CategoryID
 	newItem.Price = item.Price
 	newItem.Quantity = item.Quantity
 	newItem.Specification = item.Specification
-	if err := i.DB.Save(&item).Error; err != nil {
-		return domain.Items{}, err
-	}
-
-	return newItem, nil
+	return i.DB.Save(&item).Error
 }
 
 func (i *itemRepositoryImpl) Delete(itemID int) error {
@@ -53,11 +45,7 @@ func (i *itemRepositoryImpl) Delete(itemID int) error {
 		return err
 	}
 
-	if err := i.DB.Delete(&item).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return i.DB.Delete(&item).Error
 }
 
 func (i *itemRepositoryImpl) GetAll() ([]domain.Items, error) {

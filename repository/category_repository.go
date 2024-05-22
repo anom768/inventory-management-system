@@ -6,8 +6,8 @@ import (
 )
 
 type CategoryRepository interface {
-	Add(category domain.Categories) (domain.Categories, error)
-	Update(category domain.Categories) (domain.Categories, error)
+	Add(category domain.Categories) error
+	Update(category domain.Categories) error
 	Delete(categoryID int) error
 	GetAll() ([]domain.Categories, error)
 	GetByID(categoryID int) (domain.Categories, error)
@@ -22,26 +22,18 @@ func NewCategoryRepository(db *gorm.DB) CategoryRepository {
 	return &categoryRepositoryImpl{db}
 }
 
-func (c *categoryRepositoryImpl) Add(category domain.Categories) (domain.Categories, error) {
-	if err := c.DB.Create(&category).Error; err != nil {
-		return domain.Categories{}, err
-	}
-
-	return category, nil
+func (c *categoryRepositoryImpl) Add(category domain.Categories) error {
+	return c.DB.Create(&category).Error
 }
 
-func (c *categoryRepositoryImpl) Update(category domain.Categories) (domain.Categories, error) {
+func (c *categoryRepositoryImpl) Update(category domain.Categories) error {
 	newCategory := domain.Categories{}
 	if err := c.DB.First(&newCategory, "id = ?", category.ID).Error; err != nil {
-		return domain.Categories{}, err
+		return err
 	}
 
 	newCategory.Name = category.Name
-	if err := c.DB.Save(&category).Error; err != nil {
-		return domain.Categories{}, err
-	}
-
-	return newCategory, nil
+	return c.DB.Save(&category).Error
 }
 
 func (c *categoryRepositoryImpl) Delete(categoryID int) error {
@@ -50,11 +42,7 @@ func (c *categoryRepositoryImpl) Delete(categoryID int) error {
 		return err
 	}
 
-	if err := c.DB.Delete(&category).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return c.DB.Delete(&category).Error
 }
 
 func (c *categoryRepositoryImpl) GetAll() ([]domain.Categories, error) {

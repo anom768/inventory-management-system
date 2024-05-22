@@ -38,7 +38,7 @@ func (i *itemControllerImpl) Add(c *gin.Context) {
 		return
 	}
 
-	_, err := i.ItemService.Add(itemAddRequest)
+	err := i.ItemService.Add(itemAddRequest)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
 		return
@@ -66,7 +66,7 @@ func (i *itemControllerImpl) Update(c *gin.Context) {
 		return
 	}
 
-	_, err = i.ItemService.Update(itemUpdateRequest)
+	err = i.ItemService.Update(itemUpdateRequest)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
 		return

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/go-playground/validator/v10"
 	"inventory-management-system/model/domain"
 	"inventory-management-system/repository"
 )
@@ -13,11 +12,10 @@ type ReportService interface {
 
 type reportServiceImpl struct {
 	repository.ReportRepository
-	*validator.Validate
 }
 
-func NewReportService(reportRepository repository.ReportRepository, validate *validator.Validate) ReportService {
-	return &reportServiceImpl{reportRepository, validate}
+func NewReportService(reportRepository repository.ReportRepository) ReportService {
+	return &reportServiceImpl{reportRepository}
 }
 
 func (r *reportServiceImpl) GetAllActivity() ([]domain.Activities, error) {

@@ -39,7 +39,7 @@ func (cc *categoryControllerImpl) Add(c *gin.Context) {
 		return
 	}
 
-	_, err = cc.CategoryService.Add(&categoryAddRequest)
+	err = cc.CategoryService.Add(&categoryAddRequest)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
 		return
@@ -68,7 +68,7 @@ func (cc *categoryControllerImpl) Update(c *gin.Context) {
 		return
 	}
 
-	_, err = cc.CategoryService.Update(categoryUpdateRequest)
+	err = cc.CategoryService.Update(categoryUpdateRequest)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
 		return

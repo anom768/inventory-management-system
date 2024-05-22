@@ -2,9 +2,8 @@ package service
 
 import (
 	"errors"
-	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt"
-	"golang.org/x/crypto/bcrypt"
+	"inventory-management-system/helper"
 	"inventory-management-system/model/domain"
 	"inventory-management-system/model/web"
 	"inventory-management-system/repository"
@@ -12,9 +11,9 @@ import (
 )
 
 type UserService interface {
-	Register(userRegisterRequest *web.UserRegisterRequest) (domain.Users, error)
+	Register(userRegisterRequest *web.UserRegisterRequest) error
 	Login(userLoginRequest *web.UserLoginRequest) (token *string, err error)
-	Update(userUpdateRequest web.UserUpdateRequest) (domain.Users, error)
+	Update(userUpdateRequest web.UserUpdateRequest) error
 	Delete(username string) error
 	GetAll() ([]domain.Users, error)
 	GetByUsername(username string) (domain.Users, error)
@@ -24,53 +23,37 @@ type UserService interface {
 type userServiceImpl struct {
 	repository.UserRepository
 	repository.SessionRepository
-	*validator.Validate
 }
 
-func NewUserService(userRepository repository.UserRepository, sessionRepository repository.SessionRepository, validate *validator.Validate) UserService {
-	return &userServiceImpl{userRepository, sessionRepository, validate}
+func NewUserService(userRepository repository.UserRepository, sessionRepository repository.SessionRepository) UserService {
+	return &userServiceImpl{userRepository, sessionRepository}
 }
 
-func (u *userServiceImpl) Register(userRegisterRequest *web.UserRegisterRequest) (domain.Users, error) {
-	err := u.Validate.Struct(userRegisterRequest)
+func (u *userServiceImpl) Register(userRegisterRequest *web.UserRegisterRequest) error {
+	hasPassword, err := helper.HashPassword(userRegisterRequest.Password)
 	if err != nil {
-		return domain.Users{}, err
-	}
-
-	hasPassword, err := hashPassword(userRegisterRequest.Password)
-	if err != nil {
-		return domain.Users{}, errors.New("hashing password failed")
+		return errors.New("hashing password failed")
 	}
 
 	if u.CheckAvailable(userRegisterRequest.Username) {
-		return domain.Users{}, errors.New("username is already taken")
+		return errors.New("username is already taken")
 	}
 
-	user, err := u.UserRepository.Add(domain.Users{
+	return u.UserRepository.Add(domain.Users{
 		FullName: userRegisterRequest.FullName,
 		Username: userRegisterRequest.Username,
 		Password: hasPassword,
 		Role:     userRegisterRequest.Role,
 	})
-	if err != nil {
-		return domain.Users{}, errors.New("user creation failed")
-	}
-
-	return user, nil
 }
 
 func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (token *string, err error) {
-	err = u.Validate.Struct(userLoginRequest)
-	if err != nil {
-		return nil, err
-	}
-
 	user, err := u.UserRepository.GetByUsername(userLoginRequest.Username)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
 
-	result := checkPasswordHash(userLoginRequest.Password, user.Password)
+	result := helper.CheckPasswordHash(userLoginRequest.Password, user.Password)
 	if !result {
 		return nil, errors.New("email or password is wrong")
 	}
@@ -95,7 +78,7 @@ func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (token *
 		ExpiresAt: expirationTime,
 	}
 
-	_, err = u.SessionRepository.Add(session)
+	err = u.SessionRepository.Add(session)
 	if err != nil {
 		return nil, err
 	}
@@ -103,28 +86,18 @@ func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (token *
 	return &tokenString, nil
 }
 
-func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) (domain.Users, error) {
-	err := u.Validate.Struct(userUpdateRequest)
+func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) error {
+	hasPassword, err := helper.HashPassword(userUpdateRequest.Password)
 	if err != nil {
-		return domain.Users{}, err
+		return errors.New("hashing password failed")
 	}
 
-	hasPassword, err := hashPassword(userUpdateRequest.Password)
-	if err != nil {
-		return domain.Users{}, errors.New("hashing password failed")
-	}
-
-	user, err := u.UserRepository.Update(domain.Users{
+	return u.UserRepository.Update(domain.Users{
 		Username: userUpdateRequest.Username,
 		FullName: userUpdateRequest.FullName,
 		Password: hasPassword,
 		Role:     userUpdateRequest.Role,
 	})
-	if err != nil {
-		return domain.Users{}, err
-	}
-
-	return user, nil
 }
 
 func (u *userServiceImpl) Delete(username string) error {
@@ -132,40 +105,15 @@ func (u *userServiceImpl) Delete(username string) error {
 }
 
 func (u *userServiceImpl) GetAll() ([]domain.Users, error) {
-	users, err := u.UserRepository.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	for i := range users {
-		users[i].Password = "-"
-	}
-	return users, nil
+	return u.UserRepository.GetAll()
 }
 
 func (u *userServiceImpl) GetByUsername(username string) (domain.Users, error) {
-	user, err := u.UserRepository.GetByUsername(username)
-	if err != nil {
-		return domain.Users{}, err
-	}
-	user.Password = "-"
-	return user, nil
+	return u.UserRepository.GetByUsername(username)
 }
 
 func (u *userServiceImpl) CheckAvailable(username string) bool {
 	_, err := u.UserRepository.GetByUsername(username)
-	if err != nil {
-		return false
-	}
-	return true
-}
-
-func hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(bytes), err
-}
-
-func checkPasswordHash(password string, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
 		return false
 	}

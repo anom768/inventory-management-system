@@ -6,7 +6,7 @@ import (
 )
 
 type ReportRepository interface {
-	AddActivity(activity domain.Activities) (domain.Activities, error)
+	AddActivity(activity domain.Activities) error
 	GetAllActivity() ([]domain.Activities, error)
 	ReportStock(itemStock int) ([]domain.Items, error)
 }
@@ -19,12 +19,8 @@ func NewReportRepository(db *gorm.DB) ReportRepository {
 	return &reportRepositoryImpl{db}
 }
 
-func (r *reportRepositoryImpl) AddActivity(activity domain.Activities) (domain.Activities, error) {
-	if err := r.DB.Create(&activity).Error; err != nil {
-		return domain.Activities{}, err
-	}
-
-	return activity, nil
+func (r *reportRepositoryImpl) AddActivity(activity domain.Activities) error {
+	return r.DB.Create(&activity).Error
 }
 
 func (r *reportRepositoryImpl) GetAllActivity() ([]domain.Activities, error) {
