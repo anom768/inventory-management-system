@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"inventory-management-system/helper"
 	"inventory-management-system/model/web"
 	"inventory-management-system/service"
 	"net/http"
@@ -28,96 +29,127 @@ func NewItemController(itemService service.ItemService, validate *validator.Vali
 
 func (i *itemControllerImpl) Add(c *gin.Context) {
 	var itemAddRequest web.ItemAddRequest
-	if err := c.ShouldBindJSON(&itemAddRequest); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
-		return
-	}
+	helper.ReadFromRequestBody(c, itemAddRequest)
 
 	if err := i.Validate.Struct(&itemAddRequest); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("validation error"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "validation error: " + err.Error(),
+		})
 		return
 	}
 
-	err := i.ItemService.Add(itemAddRequest)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	errResponse := i.ItemService.Add(itemAddRequest)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusCreated, web.NewCreated("create item successful"))
+	c.JSON(http.StatusCreated, web.SuccessResponse{
+		Code:    http.StatusCreated,
+		Status:  "status created",
+		Message: "success create item",
+	})
 }
 
 func (i *itemControllerImpl) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("itemID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid id"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "invalid id",
+		})
 		return
 	}
 
 	var itemUpdateRequest web.ItemUpdateRequest
-	if err := c.ShouldBindJSON(&itemUpdateRequest); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid body request"))
-		return
-	}
+	helper.ReadFromRequestBody(c, itemUpdateRequest)
 
 	itemUpdateRequest.ID = id
 	if err := i.Validate.Struct(&itemUpdateRequest); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("validation error"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "validation error: " + err.Error(),
+		})
 		return
 	}
 
-	err = i.ItemService.Update(itemUpdateRequest)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	errResponse := i.ItemService.Update(itemUpdateRequest)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusOK, web.NewOk("update item successful"))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status created",
+		Message: "success update item",
+	})
 }
 
 func (i *itemControllerImpl) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("itemID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid id"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "invalid id",
+		})
 		return
 	}
 
-	err = i.ItemService.Delete(id)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	errResponse := i.ItemService.Delete(id)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusOK, web.NewOk("delete item successful"))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "success delete item",
+	})
 }
 
 func (i *itemControllerImpl) GetByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("itemID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestResponse("invalid id"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "invalid id",
+		})
 		return
 	}
 
-	item, err := i.ItemService.GetByID(id)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	item, errResponse := i.ItemService.GetByID(id)
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusOK, web.NewResponseModel(item))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "success get item",
+		Data:    item,
+	})
 }
 
 func (i *itemControllerImpl) GetAll(c *gin.Context) {
-	items, err := i.ItemService.GetAll()
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
+	items, errResponse := i.ItemService.GetAll()
+	if errResponse.Code != 0 {
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	if len(items) == 0 {
-		c.AbortWithStatusJSON(http.StatusNotFound, web.NewNotFoundResponse("item not found"))
-		return
-	}
-
-	c.JSON(http.StatusOK, web.NewResponseModel(items))
+	c.JSON(http.StatusOK, web.SuccessResponse{
+		Code:    http.StatusOK,
+		Status:  "status ok",
+		Message: "success get all item",
+		Data:    items,
+	})
 }
