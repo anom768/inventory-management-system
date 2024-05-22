@@ -6,8 +6,8 @@ import (
 )
 
 type UserRepository interface {
-	Add(user domain.Users) (domain.Users, error)
-	Update(user domain.Users) (domain.Users, error)
+	Add(user domain.Users) error
+	Update(user domain.Users) error
 	Delete(username string) error
 	GetAll() ([]domain.Users, error)
 	GetByUsername(username string) (domain.Users, error)
@@ -21,28 +21,20 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepositoryImpl{db}
 }
 
-func (u *userRepositoryImpl) Add(user domain.Users) (domain.Users, error) {
-	if err := u.DB.Create(&user).Error; err != nil {
-		return domain.Users{}, err
-	}
-
-	return user, nil
+func (u *userRepositoryImpl) Add(user domain.Users) error {
+	return u.DB.Create(&user).Error
 }
 
-func (u *userRepositoryImpl) Update(user domain.Users) (domain.Users, error) {
+func (u *userRepositoryImpl) Update(user domain.Users) error {
 	newUser := domain.Users{}
 	if err := u.DB.First(&newUser, "username = ?", user.Username).Error; err != nil {
-		return domain.Users{}, err
+		return err
 	}
 
 	newUser.FullName = user.FullName
 	newUser.Password = user.Password
 	newUser.Role = user.Role
-	if err := u.DB.Save(&newUser).Error; err != nil {
-		return domain.Users{}, err
-	}
-
-	return newUser, nil
+	return u.DB.Save(&newUser).Error
 }
 
 func (u *userRepositoryImpl) Delete(username string) error {
@@ -51,11 +43,7 @@ func (u *userRepositoryImpl) Delete(username string) error {
 		return err
 	}
 
-	if err := u.DB.Delete(&user).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return u.DB.Delete(&user).Error
 }
 
 func (u *userRepositoryImpl) GetAll() ([]domain.Users, error) {

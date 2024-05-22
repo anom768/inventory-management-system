@@ -41,7 +41,7 @@ func (u *userControllerImpl) Register(c *gin.Context) {
 		return
 	}
 
-	_, err = u.UserService.Register(&userRegisterRequest)
+	err = u.UserService.Register(&userRegisterRequest)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
 		return
@@ -94,7 +94,7 @@ func (u *userControllerImpl) Update(c *gin.Context) {
 		return
 	}
 
-	_, err = u.UserService.Update(userUpdateRequest)
+	err = u.UserService.Update(userUpdateRequest)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.NewInternalServerError(err.Error()))
 		return

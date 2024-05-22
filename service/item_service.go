@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/go-playground/validator/v10"
 	"inventory-management-system/model/domain"
 	"inventory-management-system/model/web"
 	"inventory-management-system/repository"
@@ -9,8 +8,8 @@ import (
 )
 
 type ItemService interface {
-	Add(itemAddRequest web.ItemAddRequest) (domain.Items, error)
-	Update(itemUpdateRequest web.ItemUpdateRequest) (domain.Items, error)
+	Add(itemAddRequest web.ItemAddRequest) error
+	Update(itemUpdateRequest web.ItemUpdateRequest) error
 	Delete(itemID int) error
 	GetAll() ([]domain.Items, error)
 	GetByID(itemID int) (domain.Items, error)
@@ -19,64 +18,55 @@ type ItemService interface {
 type itemServiceImpl struct {
 	repository.ItemRepository
 	repository.ReportRepository
-	*validator.Validate
 }
 
-func NewItemService(itemRepository repository.ItemRepository, activityRepository repository.ReportRepository, validate *validator.Validate) ItemService {
-	return &itemServiceImpl{itemRepository, activityRepository, validate}
+func NewItemService(itemRepository repository.ItemRepository, activityRepository repository.ReportRepository) ItemService {
+	return &itemServiceImpl{itemRepository, activityRepository}
 }
 
-func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) (domain.Items, error) {
-	err := i.Validate.Struct(itemAddRequest)
-	if err != nil {
-		return domain.Items{}, err
-	}
-
-	item, err := i.ItemRepository.Add(domain.Items{
+func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) error {
+	item := domain.Items{
 		Name:          itemAddRequest.Name,
 		CategoryID:    itemAddRequest.CategoryID,
 		Price:         itemAddRequest.Price,
 		Quantity:      itemAddRequest.Quantity,
 		Specification: itemAddRequest.Specification,
-	})
+	}
+	err := i.ItemRepository.Add(item)
 	if err != nil {
-		return domain.Items{}, err
+		return err
 	}
 
-	_, err = i.ReportRepository.AddActivity(domain.Activities{
+	err = i.ReportRepository.AddActivity(domain.Activities{
 		ItemID:         item.ID,
 		Action:         "POST",
 		QuantityChange: item.Quantity,
 		Timestamp:      time.Now(),
 	})
 	if err != nil {
-		return domain.Items{}, err
+		return err
 	}
 
-	return item, nil
+	return nil
 }
 
-func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) (domain.Items, error) {
-	err := i.Validate.Struct(itemUpdateRequest)
-	if err != nil {
-		return domain.Items{}, err
-	}
-
+func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) error {
 	itemDB, err := i.ItemRepository.GetByItemID(itemUpdateRequest.ID)
 	if err != nil {
-		return domain.Items{}, err
+		return err
 	}
 
-	item, err := i.ItemRepository.Update(domain.Items{
+	item := domain.Items{
 		ID:            itemUpdateRequest.ID,
 		Name:          itemUpdateRequest.Name,
 		CategoryID:    itemUpdateRequest.CategoryID,
 		Price:         itemUpdateRequest.Price,
 		Quantity:      itemUpdateRequest.Quantity,
 		Specification: itemUpdateRequest.Specification,
-	})
+	}
+	err = i.ItemRepository.Update(item)
 	if err != nil {
-		return domain.Items{}, err
+		return err
 	}
 
 	var quantityChange int
@@ -85,23 +75,13 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) (domai
 	} else {
 		quantityChange = itemUpdateRequest.Quantity - itemDB.Quantity
 	}
-	//if itemDB.Quantity > itemUpdateRequest.Quantity {
-	//
-	//} else if itemDB.Quantity < itemUpdateRequest.Quantity {
-	//	quantityChange = itemUpdateRequest.Quantity - itemDB.Quantity
-	//} else {
-	//	quantityChange = 0
-	//}
-	if _, err := i.ReportRepository.AddActivity(domain.Activities{
+
+	return i.ReportRepository.AddActivity(domain.Activities{
 		ItemID:         item.ID,
 		Action:         "UPDATE",
 		QuantityChange: quantityChange,
 		Timestamp:      time.Now(),
-	}); err != nil {
-		return domain.Items{}, err
-	}
-
-	return item, nil
+	})
 }
 
 func (i *itemServiceImpl) Delete(itemID int) error {
@@ -109,16 +89,12 @@ func (i *itemServiceImpl) Delete(itemID int) error {
 		return err
 	}
 
-	if _, err := i.ReportRepository.AddActivity(domain.Activities{
+	return i.ReportRepository.AddActivity(domain.Activities{
 		ItemID:         itemID,
 		Action:         "DELETE",
 		QuantityChange: 0,
 		Timestamp:      time.Now(),
-	}); err != nil {
-		return nil
-	}
-
-	return nil
+	})
 }
 
 func (i *itemServiceImpl) GetAll() ([]domain.Items, error) {
