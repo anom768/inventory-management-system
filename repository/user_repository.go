@@ -26,15 +26,17 @@ func (u *userRepositoryImpl) Add(user domain.Users) error {
 }
 
 func (u *userRepositoryImpl) Update(user domain.Users) error {
-	newUser := domain.Users{}
-	if err := u.DB.First(&newUser, "username = ?", user.Username).Error; err != nil {
-		return err
-	}
+	//newUser := domain.Users{}
+	//if err := u.DB.First(&newUser, "username = ?", user.Username).Error; err != nil {
+	//	return err
+	//}
 
-	newUser.FullName = user.FullName
-	newUser.Password = user.Password
-	newUser.Role = user.Role
-	return u.DB.Save(&newUser).Error
+	//newUser.FullName = user.FullName
+	//newUser.Password = user.Password
+	//newUser.Role = user.Role
+	//return u.DB.Save(&newUser).Error
+
+	return u.DB.Where("username = ?", user.Username).Updates(&user).Error
 }
 
 func (u *userRepositoryImpl) Delete(username string) error {
