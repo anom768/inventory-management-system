@@ -24,9 +24,9 @@ func hashPassword(password string) (string, error) {
 	return string(bytess), err
 }
 
-func login(mux *gin.Engine, userRepository repository.UserRepository) *http.Cookie {
+func login(mux *gin.Engine, handleRepository repository.HandlerRepository) *http.Cookie {
 	pwd, _ := hashPassword("testing123")
-	userRepository.Add(model.Users{
+	handleRepository.Add(&model.Users{
 		FullName: "testing",
 		Username: "testing",
 		Password: pwd,
@@ -57,11 +57,6 @@ func login(mux *gin.Engine, userRepository repository.UserRepository) *http.Cook
 var _ = Describe("Digital Inventory Management API", func() {
 	var apiServer *gin.Engine
 	var handlerRepository repository.HandlerRepository
-	var userRepository repository.UserRepository
-	var categoryRepository repository.CategoryRepository
-	var itemRepository repository.ItemRepository
-	var reportRepository repository.ReportRepository
-	var sessionRepository repository.SessionRepository
 	var userService service.UserService
 	var categoryService service.CategoryService
 	var itemService service.ItemService
@@ -84,12 +79,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 		gin.SetMode(gin.ReleaseMode)
 
 		validate := validator.New()
-		userRepository = repository.NewUserRepository(connection)
 		handlerRepository = repository.NewHandlerRepository(connection)
-		categoryRepository = repository.NewCategoryRepository(connection)
-		itemRepository = repository.NewItemRepository(connection)
-		reportRepository = repository.NewReportRepository(connection)
-		sessionRepository = repository.NewSessionRepository(connection)
 		userService = service.NewUserService(handlerRepository)
 		categoryService = service.NewCategoryService(handlerRepository)
 		itemService = service.NewItemService(handlerRepository)
@@ -269,7 +259,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 		Describe("User Repository", func() {
 			When("add new user to users table in database postgres", func() {
 				It("should save data user to users table in database postgres", func() {
-					err := userRepository.Add(model.Users{
+					err := handlerRepository.Add(&model.Users{
 						FullName: "Bangkit Anom",
 						Username: "bangkit",
 						Password: "rahasia",
@@ -290,10 +280,11 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Password: "rahasia",
 						Role:     "admin",
 					}
-					err := userRepository.Add(user)
+					err := handlerRepository.Add(&user)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := userRepository.GetByUsername("bangkit")
+					result := model.Users{}
+					err = handlerRepository.GetByUsername("bangkit", &result)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(result.ID).To(Equal(uint(1)))
 					Expect(result.FullName).To(Equal(user.FullName))
@@ -308,7 +299,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("get all data users table in database postgres", func() {
 				It("should return all data users", func() {
-					err := userRepository.Add(model.Users{
+					err := handlerRepository.Add(&model.Users{
 						FullName: "Bangkit Anom",
 						Username: "bangkit",
 						Password: "rahasia",
@@ -316,7 +307,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					err = userRepository.Add(model.Users{
+					err = handlerRepository.Add(&model.Users{
 						FullName: "Bangkit Anom",
 						Username: "anom",
 						Password: "rahasia",
@@ -324,7 +315,8 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					results, err := userRepository.GetAll()
+					results := []model.Users{}
+					err = handlerRepository.GetAll(&results)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(results).Should(HaveLen(2))
 
@@ -341,19 +333,21 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Password: "rahasia",
 						Role:     "admin",
 					}
-					err := userRepository.Add(user)
+					err := handlerRepository.Add(&user)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					newUser, err := userRepository.GetByUsername(user.Username)
+					newUser := model.Users{}
+					err = handlerRepository.GetByUsername(user.Username, &newUser)
 					Expect(err).ShouldNot(HaveOccurred())
 
 					newUser.FullName = "Anom Sedhayu"
 					newUser.Password = "newpassword"
 					newUser.Role = "user"
-					err = userRepository.Update(newUser)
+					err = handlerRepository.UpdateByUsername(newUser.Username, &newUser)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := userRepository.GetByUsername(user.Username)
+					result := model.Users{}
+					err = handlerRepository.GetByUsername(user.Username, &result)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(result.FullName).To(Equal(newUser.FullName))
 					Expect(result.Username).To(Equal(newUser.Username))
@@ -373,13 +367,14 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Password: "rahasia",
 						Role:     "admin",
 					}
-					err := userRepository.Add(user)
+					err := handlerRepository.Add(&user)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					err = userRepository.Delete(user.Username)
+					err = handlerRepository.DeleteByUsername(user.Username, &model.Users{})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := userRepository.GetByUsername(user.Username)
+					result := model.Users{}
+					err = handlerRepository.GetByUsername(user.Username, &result)
 					Expect(err).Should(HaveOccurred())
 					Expect(result).To(Equal(model.Users{}))
 
@@ -397,7 +392,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 		Describe("Category Repository", func() {
 			When("add new category to categories table in database postgres", func() {
 				It("should save data category to categories table in database postgres", func() {
-					err := categoryRepository.Add(model.Categories{
+					err := handlerRepository.Add(&model.Categories{
 						Name: "VGA",
 					})
 					Expect(err).ShouldNot(HaveOccurred())
@@ -412,10 +407,11 @@ var _ = Describe("Digital Inventory Management API", func() {
 					category := model.Categories{
 						Name: "VGA",
 					}
-					err := categoryRepository.Add(category)
+					err := handlerRepository.Add(&category)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := categoryRepository.GetByID(1)
+					result := model.Categories{}
+					err = handlerRepository.GetByID(1, &result)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(result.ID).To(Equal(int(1)))
 					Expect(result.Name).To(Equal(category.Name))
@@ -427,17 +423,18 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("get all data categories table in database postgres", func() {
 				It("should return all data categories", func() {
-					err := categoryRepository.Add(model.Categories{
+					err := handlerRepository.Add(&model.Categories{
 						Name: "VGA",
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					err = categoryRepository.Add(model.Categories{
+					err = handlerRepository.Add(&model.Categories{
 						Name: "Monitor",
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					results, err := categoryRepository.GetAll()
+					results := []model.Categories{}
+					err = handlerRepository.GetAll(&results)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(results).Should(HaveLen(2))
 
@@ -448,19 +445,21 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("update category data to categories table in database postgres", func() {
 				It("should save new data category", func() {
-					err := categoryRepository.Add(model.Categories{
+					err := handlerRepository.Add(&model.Categories{
 						Name: "VGA",
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					newCategory, err := categoryRepository.GetByID(1)
+					newCategory := model.Categories{}
+					err = handlerRepository.GetByID(1, &newCategory)
 					Expect(err).ShouldNot(HaveOccurred())
 
 					newCategory.Name = "CPU"
-					err = categoryRepository.Update(newCategory)
+					err = handlerRepository.UpdateByID(1, &newCategory)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := categoryRepository.GetByID(1)
+					result := model.Categories{}
+					err = handlerRepository.GetByID(1, &result)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(result.Name).To(Equal(newCategory.Name))
 
@@ -471,15 +470,16 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("delete category data by id to categories table in database postgres", func() {
 				It("should soft delete data category by id", func() {
-					err := categoryRepository.Add(model.Categories{
+					err := handlerRepository.Add(&model.Categories{
 						Name: "VGA",
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					err = categoryRepository.Delete(1)
+					err = handlerRepository.DeleteByID(1, model.Categories{})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := categoryRepository.GetByID(1)
+					result := model.Categories{}
+					err = handlerRepository.GetByID(1, &model.Categories{})
 					Expect(err).Should(HaveOccurred())
 					Expect(result).To(Equal(model.Categories{}))
 
@@ -497,7 +497,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 		Describe("Item Repository", func() {
 			When("add new item to items table in database postgres", func() {
 				It("should save data item to items table in database postgres", func() {
-					err := itemRepository.Add(model.Items{
+					err := handlerRepository.Add(&model.Items{
 						Name:          "VGA",
 						CategoryID:    1,
 						Quantity:      10,
@@ -520,10 +520,11 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Price:         5000000.00,
 						Specification: "",
 					}
-					err := itemRepository.Add(item)
+					err := handlerRepository.Add(&item)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := itemRepository.GetByItemID(1)
+					result := model.Items{}
+					err = handlerRepository.GetByID(1, &result)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(result.ID).To(Equal(int(1)))
 					Expect(result.Name).To(Equal(item.Name))
@@ -539,7 +540,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("get all data items table in database postgres", func() {
 				It("should return all data items", func() {
-					err := itemRepository.Add(model.Items{
+					err := handlerRepository.Add(&model.Items{
 						Name:          "VGA",
 						CategoryID:    1,
 						Quantity:      10,
@@ -548,7 +549,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					err = itemRepository.Add(model.Items{
+					err = handlerRepository.Add(&model.Items{
 						Name:          "VGA2",
 						CategoryID:    1,
 						Quantity:      10,
@@ -557,9 +558,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					results, err := itemRepository.GetAll()
+					items := []model.Items{}
+					err = handlerRepository.GetAll(&items)
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(results).Should(HaveLen(2))
+					Expect(items).Should(HaveLen(2))
 
 					err = db.Reset(connection, "items")
 					Expect(err).ShouldNot(HaveOccurred())
@@ -568,7 +570,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("update item data to items table in database postgres", func() {
 				It("should save new data item", func() {
-					err := itemRepository.Add(model.Items{
+					err := handlerRepository.Add(&model.Items{
 						Name:          "VGA2",
 						CategoryID:    1,
 						Quantity:      10,
@@ -577,7 +579,8 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					newItem, err := itemRepository.GetByItemID(1)
+					newItem := model.Items{}
+					err = handlerRepository.GetByID(1, &newItem)
 					Expect(err).ShouldNot(HaveOccurred())
 
 					newItem.Name = "VGA"
@@ -585,10 +588,11 @@ var _ = Describe("Digital Inventory Management API", func() {
 					newItem.Quantity = 5
 					newItem.Price = 4500000.00
 					newItem.Specification = "desc"
-					err = itemRepository.Update(newItem)
+					err = handlerRepository.UpdateByID(1, &newItem)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := itemRepository.GetByItemID(1)
+					result := model.Items{}
+					err = handlerRepository.GetByID(1, &result)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(result.ID).To(Equal(int(1)))
 					Expect(result.Name).To(Equal(newItem.Name))
@@ -604,7 +608,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("delete item data by item id to items table in database postgres", func() {
 				It("should soft delete data item by id", func() {
-					err := itemRepository.Add(model.Items{
+					err := handlerRepository.Add(&model.Items{
 						Name:          "VGA2",
 						CategoryID:    1,
 						Quantity:      10,
@@ -613,10 +617,11 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					err = itemRepository.Delete(1)
+					err = handlerRepository.DeleteByID(1, &model.Items{})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := itemRepository.GetByItemID(1)
+					result := model.Items{}
+					err = handlerRepository.GetByID(1, &result)
 					Expect(err).Should(HaveOccurred())
 					Expect(result).To(Equal(model.Items{}))
 
@@ -627,7 +632,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("get all data items table by category id in database postgres", func() {
 				It("should return all data items by category id", func() {
-					err := itemRepository.Add(model.Items{
+					err := handlerRepository.Add(&model.Items{
 						Name:          "VGA",
 						CategoryID:    1,
 						Quantity:      10,
@@ -636,7 +641,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					err = itemRepository.Add(model.Items{
+					err = handlerRepository.Add(&model.Items{
 						Name:          "VGA2",
 						CategoryID:    2,
 						Quantity:      10,
@@ -645,9 +650,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					results, err := itemRepository.GetByCategoryID(2)
+					items := []model.Items{}
+					err = handlerRepository.GetByCategoryID(2, &items)
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(results).Should(HaveLen(1))
+					Expect(items).Should(HaveLen(1))
 
 					err = db.Reset(connection, "items")
 					Expect(err).ShouldNot(HaveOccurred())
@@ -663,7 +669,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 		Describe("Item Repository", func() {
 			When("add new activity to activities table in database postgres", func() {
 				It("should save data activity to activities table in database postgres", func() {
-					err := reportRepository.AddActivity(model.Activities{
+					err := handlerRepository.Add(&model.Activities{
 						ItemID:         1,
 						Action:         "POST",
 						QuantityChange: 5,
@@ -678,7 +684,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("get all data activities table in database postgres", func() {
 				It("should return all data activities", func() {
-					err := reportRepository.AddActivity(model.Activities{
+					err := handlerRepository.Add(&model.Activities{
 						ItemID:         1,
 						Action:         "POST",
 						QuantityChange: 5,
@@ -686,7 +692,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					err = reportRepository.AddActivity(model.Activities{
+					err = handlerRepository.Add(&model.Activities{
 						ItemID:         2,
 						Action:         "POST",
 						QuantityChange: -2,
@@ -694,7 +700,8 @@ var _ = Describe("Digital Inventory Management API", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					results, err := reportRepository.GetAllActivity()
+					results := []model.Activities{}
+					err = handlerRepository.GetAll(&results)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(results).Should(HaveLen(2))
 
@@ -712,7 +719,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 		Describe("Session Repository", func() {
 			When("add new session to sessions table in database postgres", func() {
 				It("should save data session to sessions table in database postgres", func() {
-					err := sessionRepository.Add(model.Sessions{
+					err := handlerRepository.Add(&model.Sessions{
 						Username:  "bangkit",
 						Token:     "token",
 						ExpiresAt: time.Now().Add(5 * time.Minute),
@@ -731,10 +738,11 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Token:     "token",
 						ExpiresAt: time.Now().Add(5 * time.Minute),
 					}
-					err := sessionRepository.Add(session)
+					err := handlerRepository.Add(&session)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := sessionRepository.GetByUsername("bangkit")
+					result := model.Sessions{}
+					err = handlerRepository.GetByUsername("bangkit", &result)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(result.ID).To(Equal(uint(1)))
 					Expect(result.Username).To(Equal(session.Username))
@@ -747,17 +755,18 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 			When("delete session data by username to sessions table in database postgres", func() {
 				It("should soft delete data session by username", func() {
-					err := sessionRepository.Add(model.Sessions{
+					err := handlerRepository.Add(&model.Sessions{
 						Username:  "bangkit",
 						Token:     "token",
 						ExpiresAt: time.Now().Add(5 * time.Minute),
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					err = sessionRepository.Delete("bangkit")
+					err = handlerRepository.DeleteByUsername("bangkit", &model.Sessions{})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					result, err := sessionRepository.GetByUsername("bangkit")
+					result := model.Sessions{}
+					err = handlerRepository.GetByUsername("bangkit", &result)
 					Expect(err).Should(HaveOccurred())
 					Expect(result).To(Equal(model.Sessions{}))
 
@@ -788,7 +797,8 @@ var _ = Describe("Digital Inventory Management API", func() {
 						errResponse := userService.Register(request)
 						Expect(errResponse).To(Equal(web.ErrorResponse{}))
 
-						user, err := userRepository.GetByUsername(request.Username)
+						user := model.Users{}
+						err = handlerRepository.GetByUsername(request.Username, &user)
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(user.FullName).To(Equal(request.FullName))
 						Expect(user.Username).To(Equal(request.Username))
@@ -890,7 +900,8 @@ var _ = Describe("Digital Inventory Management API", func() {
 						tokenString, errResponse := userService.Login(&request2)
 						Expect(errResponse).To(Equal(web.ErrorResponse{}))
 
-						session, err := sessionRepository.GetByUsername(request.Username)
+						session := model.Sessions{}
+						err = handlerRepository.GetByUsername(request.Username, &session)
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(session.Token).ToNot(Equal(tokenString))
 						Expect(session.Username).To(Equal(request.Username))
@@ -1306,7 +1317,8 @@ var _ = Describe("Digital Inventory Management API", func() {
 						errResponse := itemService.Add(request)
 						Expect(errResponse).To(Equal(web.ErrorResponse{}))
 
-						item, err := itemRepository.GetByItemID(1)
+						item := model.Items{}
+						err := handlerRepository.GetByID(1, &item)
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(item.Name).To(Equal(request.Name))
 						Expect(item.CategoryID).To(Equal(request.CategoryID))
@@ -1529,7 +1541,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Timestamp:      time.Now(),
 							PerformedBy:    1,
 						}
-						err := reportRepository.AddActivity(request)
+						err := handlerRepository.Add(&request)
 						Expect(err).ShouldNot(HaveOccurred())
 
 						request2 := model.Activities{
@@ -1539,7 +1551,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Timestamp:      time.Now(),
 							PerformedBy:    1,
 						}
-						err = reportRepository.AddActivity(request2)
+						err = handlerRepository.Add(&request2)
 						Expect(err).ShouldNot(HaveOccurred())
 
 						activity, errResponse := reportService.GetAllActivity()
@@ -1583,7 +1595,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						recorder := httptest.NewRecorder()
 						request := httptest.NewRequest(http.MethodPost, "/api/v1/users", bytes.NewReader(body))
 						request.Header.Set("Content-Type", "application/json")
-						request.AddCookie(login(apiServer, userRepository))
+						request.AddCookie(login(apiServer, handlerRepository))
 
 						apiServer.ServeHTTP(recorder, request)
 
@@ -1646,7 +1658,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						recorder := httptest.NewRecorder()
 						request := httptest.NewRequest(http.MethodPost, "/api/v1/users", bytes.NewReader(body))
 						request.Header.Set("Content-Type", "application/json")
-						request.AddCookie(login(apiServer, userRepository))
+						request.AddCookie(login(apiServer, handlerRepository))
 
 						apiServer.ServeHTTP(recorder, request)
 
