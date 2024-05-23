@@ -47,10 +47,15 @@ func ReadFromRequestBody(c *gin.Context, v any) {
 //}
 
 func RegisterAdmin(userRepository repository.UserRepository) {
-	err := userRepository.Add(domain.Users{
+	pwd, err := HashPassword("admin123")
+	if err != nil {
+		panic(err)
+	}
+
+	err = userRepository.Add(domain.Users{
 		FullName: "Administrator",
 		Username: "admin",
-		Password: "admin123",
+		Password: pwd,
 		Role:     "admin",
 	})
 	if err != nil {

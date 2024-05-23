@@ -112,7 +112,7 @@ func (u *userControllerImpl) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, web.SuccessResponse{
 		Code:    http.StatusOK,
 		Status:  "status ok",
-		Message: "login user success",
+		Message: "update user success",
 	})
 }
 
