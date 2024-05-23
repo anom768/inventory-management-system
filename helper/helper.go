@@ -34,25 +34,13 @@ func ReadFromRequestBody(c *gin.Context, v any) {
 	}
 }
 
-//func Validate(c *gin.Context, v any) {
-//	err := validator.Validate.Struct(validator.Validate{}, v)
-//	if err != nil {
-//		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-//			Code:    http.StatusBadRequest,
-//			Status:  "status bad request",
-//			Message: "validation error: " + err.Error(),
-//		})
-//		return
-//	}
-//}
-
-func RegisterAdmin(userRepository repository.UserRepository) {
+func RegisterAdmin(handleRepository repository.HandlerRepository) {
 	pwd, err := HashPassword("admin123")
 	if err != nil {
 		panic(err)
 	}
 
-	err = userRepository.Add(domain.Users{
+	err = handleRepository.Add(&domain.Users{
 		FullName: "Administrator",
 		Username: "admin",
 		Password: pwd,

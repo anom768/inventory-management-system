@@ -34,11 +34,6 @@ func main() {
 
 	validate := *validator.New()
 	handleRepository := repository.NewHandlerRepository(connection)
-	userRepository := repository.NewUserRepository(connection)
-	//reportRepository := repository.NewReportRepository(connection)
-	//sessionRepository := repository.NewSessionRepository(connection)
-	//categoryRepository := repository.NewCategoryRepository(connection)
-	//itemRepository := repository.NewItemRepository(connection)
 	userService := service.NewUserService(handleRepository)
 	reportService := service.NewReportService(handleRepository)
 	categoryService := service.NewCategoryService(handleRepository)
@@ -49,7 +44,7 @@ func main() {
 	itemController := controller.NewItemController(itemService, &validate)
 
 	postgres.Reset(connection, "users")
-	helper.RegisterAdmin(userRepository)
+	helper.RegisterAdmin(handleRepository)
 
 	apiServer := gin.New()
 	app.UserRouter(apiServer, userController)
