@@ -17,12 +17,11 @@ type ItemService interface {
 }
 
 type itemServiceImpl struct {
-	repository.ItemRepository
-	repository.ReportRepository
+	repository.HandlerRepository
 }
 
-func NewItemService(itemRepository repository.ItemRepository, activityRepository repository.ReportRepository) ItemService {
-	return &itemServiceImpl{itemRepository, activityRepository}
+func NewItemService(handlerRepository repository.HandlerRepository) ItemService {
+	return &itemServiceImpl{handlerRepository}
 }
 
 func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorResponse {
@@ -33,7 +32,7 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorRespon
 		Quantity:      itemAddRequest.Quantity,
 		Specification: itemAddRequest.Specification,
 	}
-	err := i.ItemRepository.Add(item)
+	err := i.HandlerRepository.Add(&item)
 	if err != nil {
 		return web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -42,7 +41,7 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorRespon
 		}
 	}
 
-	err = i.ReportRepository.AddActivity(domain.Activities{
+	err = i.HandlerRepository.Add(&domain.Activities{
 		ItemID:         item.ID,
 		Action:         "POST",
 		QuantityChange: item.Quantity,
@@ -60,12 +59,13 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorRespon
 }
 
 func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.ErrorResponse {
-	itemDB, err := i.ItemRepository.GetByItemID(itemUpdateRequest.ID)
+	itemDB := domain.Items{}
+	err := i.HandlerRepository.GetByID(itemUpdateRequest.ID, &itemDB)
 	if err != nil {
 		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
+			Code:    http.StatusNotFound,
+			Status:  "status not found",
+			Message: "item id not found",
 		}
 	}
 
@@ -77,7 +77,7 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.Er
 		Quantity:      itemUpdateRequest.Quantity,
 		Specification: itemUpdateRequest.Specification,
 	}
-	err = i.ItemRepository.Update(item)
+	err = i.HandlerRepository.UpdateByID(itemUpdateRequest.ID, &item)
 	if err != nil {
 		return web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -93,7 +93,7 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.Er
 		quantityChange = itemUpdateRequest.Quantity - itemDB.Quantity
 	}
 
-	err = i.ReportRepository.AddActivity(domain.Activities{
+	err = i.HandlerRepository.Add(&domain.Activities{
 		ItemID:         item.ID,
 		Action:         "UPDATE",
 		QuantityChange: quantityChange,
@@ -111,7 +111,17 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.Er
 }
 
 func (i *itemServiceImpl) Delete(itemID int) web.ErrorResponse {
-	if err := i.ItemRepository.Delete(itemID); err != nil {
+	item := domain.Items{}
+	err := i.HandlerRepository.GetByID(itemID, &item)
+	if err != nil {
+		return web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "item id not found",
+		}
+	}
+
+	if err := i.HandlerRepository.DeleteByID(itemID, domain.Items{}); err != nil {
 		return web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Status:  "internal server error",
@@ -119,7 +129,7 @@ func (i *itemServiceImpl) Delete(itemID int) web.ErrorResponse {
 		}
 	}
 
-	err := i.ReportRepository.AddActivity(domain.Activities{
+	err = i.HandlerRepository.Add(&domain.Activities{
 		ItemID:         itemID,
 		Action:         "DELETE",
 		QuantityChange: 0,
@@ -137,7 +147,8 @@ func (i *itemServiceImpl) Delete(itemID int) web.ErrorResponse {
 }
 
 func (i *itemServiceImpl) GetAll() ([]domain.Items, web.ErrorResponse) {
-	items, err := i.ItemRepository.GetAll()
+	items := []domain.Items{}
+	err := i.HandlerRepository.GetAll(&items)
 	if err != nil {
 		return nil, web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -146,11 +157,20 @@ func (i *itemServiceImpl) GetAll() ([]domain.Items, web.ErrorResponse) {
 		}
 	}
 
+	if len(items) == 0 {
+		return items, web.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Status:  "status not found",
+			Message: "item not found",
+		}
+	}
+
 	return items, web.ErrorResponse{}
 }
 
 func (i *itemServiceImpl) GetByID(itemID int) (domain.Items, web.ErrorResponse) {
-	item, err := i.ItemRepository.GetByItemID(itemID)
+	item := domain.Items{}
+	err := i.HandlerRepository.GetByID(itemID, &item)
 	if err != nil {
 		return domain.Items{}, web.ErrorResponse{
 			Code:    http.StatusInternalServerError,

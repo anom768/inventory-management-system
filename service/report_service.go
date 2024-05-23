@@ -13,15 +13,16 @@ type ReportService interface {
 }
 
 type reportServiceImpl struct {
-	repository.ReportRepository
+	repository.HandlerRepository
 }
 
-func NewReportService(reportRepository repository.ReportRepository) ReportService {
-	return &reportServiceImpl{reportRepository}
+func NewReportService(handleRepository repository.HandlerRepository) ReportService {
+	return &reportServiceImpl{handleRepository}
 }
 
 func (r *reportServiceImpl) GetAllActivity() ([]domain.Activities, web.ErrorResponse) {
-	activities, err := r.ReportRepository.GetAllActivity()
+	activities := []domain.Activities{}
+	err := r.HandlerRepository.GetAll(&activities)
 	if err != nil {
 		return nil, web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -30,11 +31,19 @@ func (r *reportServiceImpl) GetAllActivity() ([]domain.Activities, web.ErrorResp
 		}
 	}
 
+	if len(activities) == 0 {
+		return nil, web.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Status:  "status not found",
+			Message: "report service is empty",
+		}
+	}
+
 	return activities, web.ErrorResponse{}
 }
 
 func (r *reportServiceImpl) ReportStock(stockItem int) ([]domain.Items, web.ErrorResponse) {
-	item, err := r.ReportRepository.ReportStock(stockItem)
+	item, err := r.HandlerRepository.ReportStock(stockItem)
 	if err != nil {
 		return nil, web.ErrorResponse{
 			Code:    http.StatusInternalServerError,

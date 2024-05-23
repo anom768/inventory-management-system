@@ -17,11 +17,11 @@ type CategoryService interface {
 }
 
 type categoryServiceImpl struct {
-	repository.CategoryRepository
+	repository.HandlerRepository
 }
 
-func NewCategoryService(categoryRepository repository.CategoryRepository) CategoryService {
-	return &categoryServiceImpl{categoryRepository}
+func NewCategoryService(handleRepository repository.HandlerRepository) CategoryService {
+	return &categoryServiceImpl{handleRepository}
 }
 
 func (c *categoryServiceImpl) Add(categoryAddRequest *web.CategoryAddRequest) web.ErrorResponse {
@@ -34,7 +34,7 @@ func (c *categoryServiceImpl) Add(categoryAddRequest *web.CategoryAddRequest) we
 		}
 	}
 
-	err := c.CategoryRepository.Add(domain.Categories{
+	err := c.HandlerRepository.Add(&domain.Categories{
 		Name: categoryAddRequest.Name,
 	})
 	if err != nil {
@@ -49,7 +49,26 @@ func (c *categoryServiceImpl) Add(categoryAddRequest *web.CategoryAddRequest) we
 }
 
 func (c *categoryServiceImpl) Update(categoryUpdateRequest web.CategoryUpdateRequest) web.ErrorResponse {
-	err := c.CategoryRepository.Update(domain.Categories{
+	category := domain.Categories{}
+	err := c.HandlerRepository.GetByID(categoryUpdateRequest.ID, &category)
+	if err != nil {
+		return web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "category id not exists",
+		}
+	}
+
+	result := c.CheckAvailable(category.Name)
+	if !result {
+		return web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "category name exists",
+		}
+	}
+
+	err = c.HandlerRepository.UpdateByID(categoryUpdateRequest.ID, &domain.Categories{
 		ID:   categoryUpdateRequest.ID,
 		Name: categoryUpdateRequest.Name,
 	})
@@ -65,7 +84,17 @@ func (c *categoryServiceImpl) Update(categoryUpdateRequest web.CategoryUpdateReq
 }
 
 func (c *categoryServiceImpl) Delete(categoryID int) web.ErrorResponse {
-	err := c.CategoryRepository.Delete(categoryID)
+	category := domain.Categories{}
+	err := c.HandlerRepository.GetByID(categoryID, &category)
+	if err != nil {
+		return web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "category id not exists",
+		}
+	}
+
+	err = c.HandlerRepository.DeleteByID(categoryID, &domain.Categories{})
 	if err != nil {
 		return web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -78,7 +107,8 @@ func (c *categoryServiceImpl) Delete(categoryID int) web.ErrorResponse {
 }
 
 func (c *categoryServiceImpl) GetAll() ([]domain.Categories, web.ErrorResponse) {
-	categories, err := c.CategoryRepository.GetAll()
+	categories := []domain.Categories{}
+	err := c.HandlerRepository.GetAll(&categories)
 	if err != nil {
 		return nil, web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -91,7 +121,8 @@ func (c *categoryServiceImpl) GetAll() ([]domain.Categories, web.ErrorResponse) 
 }
 
 func (c *categoryServiceImpl) GetByID(categoryID int) (domain.Categories, web.ErrorResponse) {
-	category, err := c.CategoryRepository.GetByID(categoryID)
+	category := domain.Categories{}
+	err := c.HandlerRepository.GetByID(categoryID, &category)
 	if err != nil {
 		return domain.Categories{}, web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -104,7 +135,7 @@ func (c *categoryServiceImpl) GetByID(categoryID int) (domain.Categories, web.Er
 }
 
 func (c *categoryServiceImpl) CheckAvailable(name string) bool {
-	_, err := c.CategoryRepository.GetByName(name)
+	err := c.HandlerRepository.GetByName(name, &domain.Categories{})
 	if err != nil {
 		return false
 	}
