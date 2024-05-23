@@ -13,6 +13,7 @@ type HandlerRepository interface {
 	DeleteByUsername(username string, v any) error
 	GetAll(v any) error
 	GetByID(id int, v any) error
+	GetByName(name string, v any) error
 	GetByUsername(username string, v any) error
 	ReportStock(itemStock int) ([]domain.Items, error)
 }
@@ -55,6 +56,10 @@ func (h *handlerRepositoryImpl) GetByID(id int, v any) error {
 
 func (h *handlerRepositoryImpl) GetByUsername(username string, v any) error {
 	return h.DB.Where("username = ?", username).First(v).Error
+}
+
+func (h *handlerRepositoryImpl) GetByName(name string, v any) error {
+	return h.DB.Where("name = ?", name).First(v).Error
 }
 
 func (h *handlerRepositoryImpl) ReportStock(itemStock int) ([]domain.Items, error) {

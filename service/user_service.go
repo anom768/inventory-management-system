@@ -21,12 +21,11 @@ type UserService interface {
 }
 
 type userServiceImpl struct {
-	repository.UserRepository
-	repository.SessionRepository
+	repository.HandlerRepository
 }
 
-func NewUserService(userRepository repository.UserRepository, sessionRepository repository.SessionRepository) UserService {
-	return &userServiceImpl{userRepository, sessionRepository}
+func NewUserService(handlerRepository repository.HandlerRepository) UserService {
+	return &userServiceImpl{handlerRepository}
 }
 
 func (u *userServiceImpl) Register(userRegisterRequest *web.UserRegisterRequest) web.ErrorResponse {
@@ -47,7 +46,7 @@ func (u *userServiceImpl) Register(userRegisterRequest *web.UserRegisterRequest)
 		}
 	}
 
-	err = u.UserRepository.Add(domain.Users{
+	err = u.HandlerRepository.Add(&domain.Users{
 		FullName: userRegisterRequest.FullName,
 		Username: userRegisterRequest.Username,
 		Password: hasPassword,
@@ -65,7 +64,8 @@ func (u *userServiceImpl) Register(userRegisterRequest *web.UserRegisterRequest)
 }
 
 func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (*string, web.ErrorResponse) {
-	user, err := u.UserRepository.GetByUsername(userLoginRequest.Username)
+	user := domain.Users{}
+	err := u.HandlerRepository.GetByUsername(userLoginRequest.Username, &user)
 	if err != nil {
 		return nil, web.ErrorResponse{
 			Code:    http.StatusNotFound,
@@ -107,7 +107,7 @@ func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (*string
 		ExpiresAt: expirationTime,
 	}
 
-	err = u.SessionRepository.Add(session)
+	err = u.HandlerRepository.Add(&session)
 	if err != nil {
 		return nil, web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -120,6 +120,14 @@ func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (*string
 }
 
 func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) web.ErrorResponse {
+	if !u.CheckAvailable(userUpdateRequest.Username) {
+		return web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "username is not exist",
+		}
+	}
+
 	hasPassword, err := helper.HashPassword(userUpdateRequest.Password)
 	if err != nil {
 		return web.ErrorResponse{
@@ -129,7 +137,7 @@ func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) web.Er
 		}
 	}
 
-	err = u.UserRepository.Update(domain.Users{
+	err = u.HandlerRepository.UpdateByUsername(userUpdateRequest.Username, &domain.Users{
 		Username: userUpdateRequest.Username,
 		FullName: userUpdateRequest.FullName,
 		Password: hasPassword,
@@ -147,7 +155,15 @@ func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) web.Er
 }
 
 func (u *userServiceImpl) Delete(username string) web.ErrorResponse {
-	err := u.UserRepository.Delete(username)
+	if !u.CheckAvailable(username) {
+		return web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "username is not exist",
+		}
+	}
+
+	err := u.HandlerRepository.DeleteByUsername(username, &domain.Users{})
 	if err != nil {
 		return web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -160,7 +176,8 @@ func (u *userServiceImpl) Delete(username string) web.ErrorResponse {
 }
 
 func (u *userServiceImpl) GetAll() ([]domain.Users, web.ErrorResponse) {
-	users, err := u.UserRepository.GetAll()
+	users := []domain.Users{}
+	err := u.HandlerRepository.GetAll(&users)
 	if err != nil {
 		return nil, web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -181,11 +198,12 @@ func (u *userServiceImpl) GetAll() ([]domain.Users, web.ErrorResponse) {
 }
 
 func (u *userServiceImpl) GetByUsername(username string) (domain.Users, web.ErrorResponse) {
-	user, err := u.UserRepository.GetByUsername(username)
+	user := domain.Users{}
+	err := u.HandlerRepository.GetByUsername(username, &user)
 	if err != nil {
-		return domain.Users{}, web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
+		return user, web.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Status:  "status not found",
 			Message: err.Error(),
 		}
 	}
@@ -194,7 +212,7 @@ func (u *userServiceImpl) GetByUsername(username string) (domain.Users, web.Erro
 }
 
 func (u *userServiceImpl) CheckAvailable(username string) bool {
-	_, err := u.UserRepository.GetByUsername(username)
+	err := u.HandlerRepository.GetByUsername(username, &domain.Users{})
 	if err != nil {
 		return false
 	}
