@@ -101,10 +101,12 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.Er
 	if itemDB.ID == itemUpdateRequest.ID && itemDB.Name == itemUpdateRequest.Name {
 
 	} else {
-		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "item name is already in use",
+		if ok := i.CheckAvailable(itemUpdateRequest.Name); ok {
+			return web.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Status:  "status bad request",
+				Message: "item name is already in use",
+			}
 		}
 	}
 
