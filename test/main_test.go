@@ -1201,7 +1201,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("get all data category empty", func() {
 					It("should return empty category data", func() {
 						categories, errResponse := categoryService.GetAll()
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
 						Expect(categories).To(HaveLen(0))
 
 						err = db.Reset(connection, "categories")
@@ -1307,8 +1307,11 @@ var _ = Describe("Digital Inventory Management API", func() {
 			Describe("Add Item", func() {
 				When("add item is successful", func() {
 					It("should add item to database", func() {
+						categoryService.Add(&web.CategoryAddRequest{
+							Name: "VGA",
+						})
 						request := web.ItemAddRequest{
-							Name:          "VGA",
+							Name:          "RTX 3060",
 							CategoryID:    1,
 							Quantity:      10,
 							Price:         500.00,
@@ -1335,6 +1338,9 @@ var _ = Describe("Digital Inventory Management API", func() {
 			Describe("Get By ID", func() {
 				When("get by id is success", func() {
 					It("should return item data", func() {
+						categoryService.Add(&web.CategoryAddRequest{
+							Name: "VGA",
+						})
 						request := web.ItemAddRequest{
 							Name:          "VGA",
 							CategoryID:    1,
@@ -1373,6 +1379,9 @@ var _ = Describe("Digital Inventory Management API", func() {
 			Describe("Get All", func() {
 				When("get all data item success", func() {
 					It("should return all item data", func() {
+						categoryService.Add(&web.CategoryAddRequest{
+							Name: "VGA",
+						})
 						request := web.ItemAddRequest{
 							Name:          "VGA",
 							CategoryID:    1,
@@ -1385,7 +1394,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 						request2 := web.ItemAddRequest{
 							Name:          "PC",
-							CategoryID:    2,
+							CategoryID:    1,
 							Quantity:      10,
 							Price:         500.00,
 							Specification: "RTX 3060",
@@ -1417,6 +1426,9 @@ var _ = Describe("Digital Inventory Management API", func() {
 			Describe("Delete", func() {
 				When("delete existing item data", func() {
 					It("should delete data item", func() {
+						categoryService.Add(&web.CategoryAddRequest{
+							Name: "VGA",
+						})
 						request := web.ItemAddRequest{
 							Name:          "VGA",
 							CategoryID:    1,
@@ -1488,8 +1500,11 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 				When("update item data is success", func() {
 					It("should update data item", func() {
+						categoryService.Add(&web.CategoryAddRequest{
+							Name: "VGA",
+						})
 						request := web.ItemAddRequest{
-							Name:          "VGA",
+							Name:          "RTX 3060",
 							CategoryID:    1,
 							Quantity:      10,
 							Price:         500.00,
@@ -1500,8 +1515,8 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 						update := web.ItemUpdateRequest{
 							ID:            1,
-							Name:          "VGN",
-							CategoryID:    2,
+							Name:          "RTX 3090",
+							CategoryID:    1,
 							Quantity:      12,
 							Price:         5000.00,
 							Specification: "RTX 3060 new",
@@ -1599,7 +1614,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 						apiServer.ServeHTTP(recorder, request)
 
-						response := web.SuccessResponse{}
+						response := web.SuccessResponseMessage{}
 						err = json.Unmarshal(recorder.Body.Bytes(), &response)
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(response.Code).To(Equal(http.StatusCreated))
