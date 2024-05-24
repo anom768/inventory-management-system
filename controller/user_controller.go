@@ -30,7 +30,9 @@ func NewUserController(userService service.UserService, validate *validator.Vali
 
 func (u *userControllerImpl) Register(c *gin.Context) {
 	var userRegisterRequest web.UserRegisterRequest
-	helper.ReadFromRequestBody(c, &userRegisterRequest)
+	if err := helper.ReadFromRequestBody(c, &userRegisterRequest); err != nil {
+		return
+	}
 
 	err := u.Validate.Struct(userRegisterRequest)
 	if err != nil {
@@ -48,7 +50,7 @@ func (u *userControllerImpl) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, web.SuccessResponse{
+	c.JSON(http.StatusCreated, web.SuccessResponseMessage{
 		Code:    http.StatusCreated,
 		Status:  "status created",
 		Message: "register user success",
@@ -57,7 +59,9 @@ func (u *userControllerImpl) Register(c *gin.Context) {
 
 func (u *userControllerImpl) Login(c *gin.Context) {
 	var userLoginRequest web.UserLoginRequest
-	helper.ReadFromRequestBody(c, &userLoginRequest)
+	if err := helper.ReadFromRequestBody(c, &userLoginRequest); err != nil {
+		return
+	}
 
 	err := u.Validate.Struct(userLoginRequest)
 	if err != nil {
@@ -81,7 +85,7 @@ func (u *userControllerImpl) Login(c *gin.Context) {
 		Expires: time.Now().Add(24 * time.Hour),
 	})
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseMessage{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "login user success",
@@ -91,7 +95,9 @@ func (u *userControllerImpl) Login(c *gin.Context) {
 func (u *userControllerImpl) Update(c *gin.Context) {
 	var userUpdateRequest web.UserUpdateRequest
 	userUpdateRequest.Username = c.Param("username")
-	helper.ReadFromRequestBody(c, &userUpdateRequest)
+	if err := helper.ReadFromRequestBody(c, &userUpdateRequest); err != nil {
+		return
+	}
 
 	err := u.Validate.Struct(userUpdateRequest)
 	if err != nil {
@@ -109,7 +115,7 @@ func (u *userControllerImpl) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseMessage{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "update user success",
@@ -124,7 +130,7 @@ func (u *userControllerImpl) Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseMessage{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "delete user success",
@@ -138,7 +144,7 @@ func (u *userControllerImpl) GetAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseData{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "get all user success",
@@ -154,7 +160,7 @@ func (u *userControllerImpl) GetByUsername(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseData{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "get user success",

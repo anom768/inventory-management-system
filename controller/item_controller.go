@@ -29,7 +29,9 @@ func NewItemController(itemService service.ItemService, validate *validator.Vali
 
 func (i *itemControllerImpl) Add(c *gin.Context) {
 	var itemAddRequest web.ItemAddRequest
-	helper.ReadFromRequestBody(c, itemAddRequest)
+	if err := helper.ReadFromRequestBody(c, &itemAddRequest); err != nil {
+		return
+	}
 
 	if err := i.Validate.Struct(&itemAddRequest); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
@@ -46,7 +48,7 @@ func (i *itemControllerImpl) Add(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, web.SuccessResponse{
+	c.JSON(http.StatusCreated, web.SuccessResponseMessage{
 		Code:    http.StatusCreated,
 		Status:  "status created",
 		Message: "success create item",
@@ -65,7 +67,9 @@ func (i *itemControllerImpl) Update(c *gin.Context) {
 	}
 
 	var itemUpdateRequest web.ItemUpdateRequest
-	helper.ReadFromRequestBody(c, itemUpdateRequest)
+	if err := helper.ReadFromRequestBody(c, &itemUpdateRequest); err != nil {
+		return
+	}
 
 	itemUpdateRequest.ID = id
 	if err := i.Validate.Struct(&itemUpdateRequest); err != nil {
@@ -83,7 +87,7 @@ func (i *itemControllerImpl) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseMessage{
 		Code:    http.StatusOK,
 		Status:  "status created",
 		Message: "success update item",
@@ -107,7 +111,7 @@ func (i *itemControllerImpl) Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseMessage{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "success delete item",
@@ -131,7 +135,7 @@ func (i *itemControllerImpl) GetByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseData{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "success get item",
@@ -146,7 +150,7 @@ func (i *itemControllerImpl) GetAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseData{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "success get all item",

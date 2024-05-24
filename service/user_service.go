@@ -122,7 +122,7 @@ func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (*string
 func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) web.ErrorResponse {
 	if !u.CheckAvailable(userUpdateRequest.Username) {
 		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
+			Code:    http.StatusNotFound,
 			Status:  "status bad request",
 			Message: "username is not exist",
 		}
@@ -157,7 +157,7 @@ func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) web.Er
 func (u *userServiceImpl) Delete(username string) web.ErrorResponse {
 	if !u.CheckAvailable(username) {
 		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
+			Code:    http.StatusNotFound,
 			Status:  "status bad request",
 			Message: "username is not exist",
 		}
@@ -194,6 +194,10 @@ func (u *userServiceImpl) GetAll() ([]domain.Users, web.ErrorResponse) {
 		}
 	}
 
+	for i, _ := range users {
+		users[i].Password = "-"
+	}
+
 	return users, web.ErrorResponse{}
 }
 
@@ -208,6 +212,7 @@ func (u *userServiceImpl) GetByUsername(username string) (domain.Users, web.Erro
 		}
 	}
 
+	user.Password = "-"
 	return user, web.ErrorResponse{}
 }
 

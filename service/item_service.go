@@ -14,6 +14,7 @@ type ItemService interface {
 	Delete(itemID int) web.ErrorResponse
 	GetAll() ([]domain.Items, web.ErrorResponse)
 	GetByID(itemID int) (domain.Items, web.ErrorResponse)
+	CheckAvailable(name string) bool
 }
 
 type itemServiceImpl struct {
@@ -25,6 +26,24 @@ func NewItemService(handlerRepository repository.HandlerRepository) ItemService 
 }
 
 func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorResponse {
+	category := domain.Categories{}
+	err := i.HandlerRepository.GetByID(itemAddRequest.CategoryID, &category)
+	if err != nil {
+		return web.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Status:  "status not found",
+			Message: "category id not found",
+		}
+	}
+
+	if ok := i.CheckAvailable(itemAddRequest.Name); ok {
+		return web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "item name is already in use",
+		}
+	}
+
 	item := domain.Items{
 		Name:          itemAddRequest.Name,
 		CategoryID:    itemAddRequest.CategoryID,
@@ -32,7 +51,7 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorRespon
 		Quantity:      itemAddRequest.Quantity,
 		Specification: itemAddRequest.Specification,
 	}
-	err := i.HandlerRepository.Add(&item)
+	err = i.HandlerRepository.Add(&item)
 	if err != nil {
 		return web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -59,13 +78,33 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorRespon
 }
 
 func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.ErrorResponse {
+	category := domain.Categories{}
+	err := i.HandlerRepository.GetByID(itemUpdateRequest.CategoryID, &category)
+	if err != nil {
+		return web.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Status:  "status not found",
+			Message: "category id not found",
+		}
+	}
+
 	itemDB := domain.Items{}
-	err := i.HandlerRepository.GetByID(itemUpdateRequest.ID, &itemDB)
+	err = i.HandlerRepository.GetByID(itemUpdateRequest.ID, &itemDB)
 	if err != nil {
 		return web.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Status:  "status not found",
 			Message: "item id not found",
+		}
+	}
+
+	if itemDB.ID == itemUpdateRequest.ID && itemDB.Name == itemUpdateRequest.Name {
+
+	} else {
+		return web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "item name is already in use",
 		}
 	}
 
@@ -180,4 +219,12 @@ func (i *itemServiceImpl) GetByID(itemID int) (domain.Items, web.ErrorResponse) 
 	}
 
 	return item, web.ErrorResponse{}
+}
+
+func (i *itemServiceImpl) CheckAvailable(name string) bool {
+	err := i.HandlerRepository.GetByName(name, &domain.Items{})
+	if err != nil {
+		return false
+	}
+	return true
 }
