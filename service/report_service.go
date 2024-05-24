@@ -43,7 +43,7 @@ func (r *reportServiceImpl) GetAllActivity() ([]domain.Activities, web.ErrorResp
 }
 
 func (r *reportServiceImpl) ReportStock(stockItem int) ([]domain.Items, web.ErrorResponse) {
-	item, err := r.HandlerRepository.ReportStock(stockItem)
+	items, err := r.HandlerRepository.ReportStock(stockItem)
 	if err != nil {
 		return nil, web.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -52,5 +52,13 @@ func (r *reportServiceImpl) ReportStock(stockItem int) ([]domain.Items, web.Erro
 		}
 	}
 
-	return item, web.ErrorResponse{}
+	if len(items) == 0 {
+		return nil, web.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Status:  "status not found",
+			Message: "report service is empty",
+		}
+	}
+
+	return items, web.ErrorResponse{}
 }

@@ -22,7 +22,7 @@ func CheckPasswordHash(password string, hash string) bool {
 	return true
 }
 
-func ReadFromRequestBody(c *gin.Context, v any) {
+func ReadFromRequestBody(c *gin.Context, v any) error {
 	err := c.ShouldBindJSON(v)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
@@ -30,8 +30,9 @@ func ReadFromRequestBody(c *gin.Context, v any) {
 			Status:  "status bad request",
 			Message: "invalid body request",
 		})
-		return
+		return err
 	}
+	return nil
 }
 
 func RegisterAdmin(handleRepository repository.HandlerRepository) {

@@ -29,7 +29,7 @@ func (r *reportControllerImpl) GetAllActivity(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseData{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "success get all activities",
@@ -43,7 +43,7 @@ func (r *reportControllerImpl) ReportStock(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Status:  "status bad request",
-			Message: err.Error(),
+			Message: "invalid item stock",
 		})
 		return
 	}
@@ -62,7 +62,7 @@ func (r *reportControllerImpl) ReportStock(c *gin.Context) {
 	}
 
 	reportStock.Items = items
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseData{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "success get all report stock",

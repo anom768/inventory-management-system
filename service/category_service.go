@@ -49,6 +49,15 @@ func (c *categoryServiceImpl) Add(categoryAddRequest *web.CategoryAddRequest) we
 }
 
 func (c *categoryServiceImpl) Update(categoryUpdateRequest web.CategoryUpdateRequest) web.ErrorResponse {
+	ok := c.CheckAvailable(categoryUpdateRequest.Name)
+	if ok {
+		return web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "category already exists",
+		}
+	}
+
 	category := domain.Categories{}
 	err := c.HandlerRepository.GetByID(categoryUpdateRequest.ID, &category)
 	if err != nil {
@@ -114,6 +123,14 @@ func (c *categoryServiceImpl) GetAll() ([]domain.Categories, web.ErrorResponse) 
 			Code:    http.StatusInternalServerError,
 			Status:  "internal server error",
 			Message: err.Error(),
+		}
+	}
+
+	if len(categories) == 0 {
+		return nil, web.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Status:  "status not found",
+			Message: "category not found",
 		}
 	}
 

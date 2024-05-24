@@ -29,21 +29,27 @@ func NewCategoryController(categoryService service.CategoryService, validate *va
 
 func (cc *categoryControllerImpl) Add(c *gin.Context) {
 	var categoryAddRequest web.CategoryAddRequest
-	helper.ReadFromRequestBody(c, &categoryAddRequest)
+	if err := helper.ReadFromRequestBody(c, &categoryAddRequest); err != nil {
+		return
+	}
 
 	err := cc.Validate.Struct(categoryAddRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, "validation error")
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Status:  "status bad request",
+			Message: "validation error: " + err.Error(),
+		})
 		return
 	}
 
 	errResponse := cc.CategoryService.Add(&categoryAddRequest)
 	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, errResponse)
+		c.AbortWithStatusJSON(errResponse.Code, errResponse)
 		return
 	}
 
-	c.JSON(http.StatusCreated, web.SuccessResponse{
+	c.JSON(http.StatusCreated, web.SuccessResponseMessage{
 		Code:    http.StatusCreated,
 		Status:  "status created",
 		Message: "success add category",
@@ -62,15 +68,17 @@ func (cc *categoryControllerImpl) Update(c *gin.Context) {
 	}
 
 	var categoryUpdateRequest web.CategoryUpdateRequest
-	helper.ReadFromRequestBody(c, categoryUpdateRequest)
-
 	categoryUpdateRequest.ID = id
+	if err := helper.ReadFromRequestBody(c, &categoryUpdateRequest); err != nil {
+		return
+	}
+
 	err = cc.Validate.Struct(categoryUpdateRequest)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Status:  "status bad request",
-			Message: "invalid id",
+			Message: "validation error: " + err.Error(),
 		})
 		return
 	}
@@ -81,7 +89,7 @@ func (cc *categoryControllerImpl) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseMessage{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "success update category",
@@ -105,7 +113,7 @@ func (cc *categoryControllerImpl) Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseMessage{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "success delete category",
@@ -119,7 +127,7 @@ func (cc *categoryControllerImpl) GetAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseData{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "success get all category",
@@ -144,7 +152,7 @@ func (cc *categoryControllerImpl) GetByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponse{
+	c.JSON(http.StatusOK, web.SuccessResponseData{
 		Code:    http.StatusOK,
 		Status:  "status ok",
 		Message: "success get category",
