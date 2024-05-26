@@ -13,6 +13,7 @@ import (
 type UserService interface {
 	Register(userRegisterRequest *web.UserRegisterRequest) web.ErrorResponse
 	Login(userLoginRequest *web.UserLoginRequest) (*string, web.ErrorResponse)
+	Logout() web.ErrorResponse
 	Update(userUpdateRequest web.UserUpdateRequest) web.ErrorResponse
 	Delete(username string) web.ErrorResponse
 	GetAll() ([]domain.Users, web.ErrorResponse)
@@ -117,6 +118,11 @@ func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (*string
 	}
 
 	return &tokenString, web.ErrorResponse{}
+}
+
+func (u *userServiceImpl) Logout() web.ErrorResponse {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) web.ErrorResponse {
