@@ -107,7 +107,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 		When("get by username failed", func() {
 			It("should return error", func() {
 				_, errResponse := userService.GetByUsername("empty")
-				Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+				Expect(errResponse).ToNot(Equal(nil))
 			})
 		})
 
@@ -795,7 +795,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Role:     "admin",
 						}
 						errResponse := userService.Register(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						user := model.Users{}
 						err = handlerRepository.GetByUsername(request.Username, &user)
@@ -819,10 +819,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Role:     "admin",
 						}
 						errResponse := userService.Register(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						errResponse = userService.Register(request)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "users")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -838,7 +838,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Password: "",
 						}
 						_, errResponse := userService.Login(&request)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "users")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -852,7 +852,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Password: "wrongpassword",
 						}
 						_, errResponse := userService.Login(&request)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "users")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -868,14 +868,14 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Role:     "admin",
 						}
 						errResponse := userService.Register(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						request2 := web.UserLoginRequest{
 							Username: "bangkit",
 							Password: "wrongpassword",
 						}
 						_, errResponse = userService.Login(&request2)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "users")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -891,14 +891,14 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Role:     "admin",
 						}
 						errResponse := userService.Register(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						request2 := web.UserLoginRequest{
 							Username: "bangkit",
 							Password: "12345678",
 						}
 						tokenString, errResponse := userService.Login(&request2)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						session := model.Sessions{}
 						err = handlerRepository.GetByUsername(request.Username, &session)
@@ -922,10 +922,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Role:     "admin",
 						}
 						errResponse := userService.Register(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						user, errResponse := userService.GetByUsername(request.Username)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect(user.Username).To(Equal(request.Username))
 						Expect(user.FullName).To(Equal(request.FullName))
 						Expect(user.Role).To(Equal(request.Role))
@@ -938,7 +938,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("get by username is failed", func() {
 					It("should return empty user data", func() {
 						user, errResponse := userService.GetByUsername("wrong")
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 						Expect(user).To(Equal(model.Users{}))
 
 						err = db.Reset(connection, "users")
@@ -957,7 +957,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Role:     "admin",
 						}
 						errResponse := userService.Register(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						request2 := &web.UserRegisterRequest{
 							FullName: "Bangkit Anom",
@@ -966,10 +966,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Role:     "admin",
 						}
 						errResponse = userService.Register(request2)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						users, errResponse := userService.GetAll()
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect(users).To(HaveLen(2))
 
 						err = db.Reset(connection, "users")
@@ -980,7 +980,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("get all data users empty", func() {
 					It("should return empty user data", func() {
 						users, errResponse := userService.GetAll()
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 						Expect(users).To(HaveLen(0))
 
 						err = db.Reset(connection, "users")
@@ -999,13 +999,13 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Role:     "admin",
 						}
 						errResponse := userService.Register(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						errResponse = userService.Delete(request.Username)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						user, errResponse := userService.GetByUsername(request.Username)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 						Expect(user).To(Equal(model.Users{}))
 
 						err = db.Reset(connection, "users")
@@ -1016,7 +1016,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("delete not existing user data", func() {
 					It("should return error", func() {
 						errResponse := userService.Delete("empty")
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "users")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1034,7 +1034,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Username: "",
 						}
 						errResponse := userService.Update(update)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "users")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1050,7 +1050,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Username: "bangkit",
 						}
 						errResponse := userService.Update(update)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "users")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1066,7 +1066,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Username: "bangkit",
 						}
 						errResponse := userService.Update(update)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "users")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1082,7 +1082,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Role:     "admin",
 						}
 						errResponse := userService.Register(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						update := web.UserUpdateRequest{
 							FullName: "Anom Sedhayu",
@@ -1091,10 +1091,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Username: "bangkit",
 						}
 						errResponse = userService.Update(update)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						user, errResponse := userService.GetByUsername(request.Username)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect(user.Username).To(Equal(update.Username))
 						Expect(user.Role).To(Equal(update.Role))
 						Expect(user.FullName).To(Equal(update.FullName))
@@ -1119,7 +1119,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Name: "VGA",
 						}
 						errResponse := categoryService.Add(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect("VGA").To(Equal(request.Name))
 
 						err = db.Reset(connection, "categories")
@@ -1133,10 +1133,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Name: "VGA",
 						}
 						errResponse := categoryService.Add(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						errResponse = categoryService.Add(request)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "categories")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1151,10 +1151,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Name: "VGA",
 						}
 						errResponse := categoryService.Add(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						category, errResponse := categoryService.GetByID(1)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect(category.Name).To(Equal(request.Name))
 
 						err = db.Reset(connection, "categories")
@@ -1165,7 +1165,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("get by id is failed", func() {
 					It("should return empty category data", func() {
 						category, errResponse := categoryService.GetByID(1)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 						Expect(category).To(Equal(model.Categories{}))
 
 						err = db.Reset(connection, "categories")
@@ -1181,16 +1181,16 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Name: "VGA",
 						}
 						errResponse := categoryService.Add(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						request2 := &web.CategoryAddRequest{
 							Name: "Monitor",
 						}
 						errResponse = categoryService.Add(request2)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						category, errResponse := categoryService.GetAll()
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect(category).To(HaveLen(2))
 
 						err = db.Reset(connection, "categories")
@@ -1201,7 +1201,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("get all data category empty", func() {
 					It("should return empty category data", func() {
 						categories, errResponse := categoryService.GetAll()
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 						Expect(categories).To(HaveLen(0))
 
 						err = db.Reset(connection, "categories")
@@ -1217,13 +1217,13 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Name: "VGA",
 						}
 						errResponse := categoryService.Add(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						errResponse = categoryService.Delete(1)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						category, errResponse := categoryService.GetByID(1)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 						Expect(category).To(Equal(model.Categories{}))
 
 						err = db.Reset(connection, "categories")
@@ -1234,7 +1234,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("delete not existing category data", func() {
 					It("should return error", func() {
 						errResponse := categoryService.Delete(1)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "categories")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1250,7 +1250,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Name: "",
 						}
 						errResponse := categoryService.Update(request)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "categories")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1264,7 +1264,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Name: "VGA",
 						}
 						errResponse := categoryService.Update(request)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "categories")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1277,17 +1277,17 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Name: "VGA",
 						}
 						errResponse := categoryService.Add(&request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						update := web.CategoryUpdateRequest{
 							ID:   1,
 							Name: "VGA2",
 						}
 						errResponse = categoryService.Update(update)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						category, errResponse := categoryService.GetByID(1)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect(category.ID).To(Equal(update.ID))
 						Expect(category.Name).To(Equal(update.Name))
 
@@ -1318,7 +1318,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Specification: "RTX 3060",
 						}
 						errResponse := itemService.Add(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						item := model.Items{}
 						err := handlerRepository.GetByID(1, &item)
@@ -1349,10 +1349,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Specification: "RTX 3060",
 						}
 						errResponse := itemService.Add(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						item, errResponse := itemService.GetByID(1)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect(item.Name).To(Equal(request.Name))
 						Expect(item.CategoryID).To(Equal(request.CategoryID))
 						Expect(item.Quantity).To(Equal(request.Quantity))
@@ -1367,7 +1367,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("get by id is failed", func() {
 					It("should return empty item data", func() {
 						item, errResponse := itemService.GetByID(1)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 						Expect(item).To(Equal(model.Items{}))
 
 						err = db.Reset(connection, "items")
@@ -1390,7 +1390,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Specification: "RTX 3060",
 						}
 						errResponse := itemService.Add(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						request2 := web.ItemAddRequest{
 							Name:          "PC",
@@ -1400,10 +1400,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Specification: "RTX 3060",
 						}
 						errResponse = itemService.Add(request2)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						item, errResponse := itemService.GetAll()
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect(item).To(HaveLen(2))
 
 						err = db.Reset(connection, "items")
@@ -1414,7 +1414,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("get all data item empty", func() {
 					It("should return empty item data", func() {
 						items, errResponse := itemService.GetAll()
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 						Expect(items).To(HaveLen(0))
 
 						err = db.Reset(connection, "items")
@@ -1437,13 +1437,13 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Specification: "RTX 3060",
 						}
 						errResponse := itemService.Add(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						errResponse = itemService.Delete(1)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						item, errResponse := itemService.GetByID(1)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 						Expect(item).To(Equal(model.Items{}))
 
 						err = db.Reset(connection, "items")
@@ -1454,7 +1454,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("delete not existing item data", func() {
 					It("should return error", func() {
 						errResponse := itemService.Delete(1)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1473,7 +1473,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Specification: "",
 						}
 						errResponse := itemService.Update(request)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1491,7 +1491,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Specification: "",
 						}
 						errResponse := itemService.Update(request)
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "items")
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1511,7 +1511,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Specification: "RTX 3060",
 						}
 						errResponse := itemService.Add(request)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						update := web.ItemUpdateRequest{
 							ID:            1,
@@ -1522,10 +1522,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Specification: "RTX 3060 new",
 						}
 						errResponse = itemService.Update(update)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						item, errResponse := itemService.GetByID(1)
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect(item.ID).To(Equal(update.ID))
 						Expect(item.Name).To(Equal(update.Name))
 						Expect(item.CategoryID).To(Equal(update.CategoryID))
@@ -1570,7 +1570,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						Expect(err).ShouldNot(HaveOccurred())
 
 						activity, errResponse := reportService.GetAllActivity()
-						Expect(errResponse).To(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ShouldNot(HaveOccurred())
 						Expect(activity).To(HaveLen(2))
 
 						err = db.Reset(connection, "activities")
@@ -1581,7 +1581,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 				When("get all data activity empty", func() {
 					It("should return empty activity data", func() {
 						activities, errResponse := reportService.GetAllActivity()
-						Expect(errResponse).ToNot(Equal(web.ErrorResponse{}))
+						Expect(errResponse).ToNot(Equal(nil))
 						Expect(activities).To(HaveLen(0))
 
 						err = db.Reset(connection, "activities")
@@ -1645,12 +1645,12 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 						apiServer.ServeHTTP(recorder, request)
 
-						response := web.ErrorResponse{}
+						response := web.NewUnauthorizedError("")
 						err = json.Unmarshal(recorder.Body.Bytes(), &response)
 						Expect(err).ShouldNot(HaveOccurred())
-						Expect(response.Code).To(Equal(http.StatusUnauthorized))
-						Expect(response.Status).To(Equal("status unauthorized"))
-						Expect(response.Message).To(Equal("session token is empty"))
+						Expect(response.Code()).To(Equal(http.StatusUnauthorized))
+						Expect(response.Status()).To(Equal("status unauthorized"))
+						Expect(response.Message()).To(Equal("session token is empty"))
 
 						err = db.Reset(connection, "users")
 						err = db.Reset(connection, "sessions")
@@ -1677,11 +1677,11 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 						apiServer.ServeHTTP(recorder, request)
 
-						response := web.ErrorResponse{}
+						response := web.NewBadRequestError("")
 						err = json.Unmarshal(recorder.Body.Bytes(), &response)
 						Expect(err).ShouldNot(HaveOccurred())
-						Expect(response.Code).To(Equal(http.StatusBadRequest))
-						Expect(response.Status).To(Equal("status bad request"))
+						Expect(response.Code()).To(Equal(http.StatusBadRequest))
+						Expect(response.Status()).To(Equal("status bad request"))
 
 						err = db.Reset(connection, "users")
 						err = db.Reset(connection, "sessions")
