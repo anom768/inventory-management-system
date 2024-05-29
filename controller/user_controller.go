@@ -46,11 +46,7 @@ func (u *userControllerImpl) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, web.SuccessResponseMessage{
-		Code:    http.StatusCreated,
-		Status:  "status created",
-		Message: "register user success",
-	})
+	c.JSON(http.StatusCreated, web.NewStatusCreated("register user success"))
 }
 
 func (u *userControllerImpl) Login(c *gin.Context) {
@@ -77,11 +73,7 @@ func (u *userControllerImpl) Login(c *gin.Context) {
 		Expires: time.Now().Add(24 * time.Hour),
 	})
 
-	c.JSON(http.StatusOK, web.SuccessResponseMessage{
-		Code:    http.StatusOK,
-		Status:  "status ok",
-		Message: "login user success",
-	})
+	c.JSON(http.StatusOK, web.NewStatusOKMessage("login user success"))
 }
 
 func (u *userControllerImpl) Update(c *gin.Context) {
@@ -103,11 +95,7 @@ func (u *userControllerImpl) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponseMessage{
-		Code:    http.StatusOK,
-		Status:  "status ok",
-		Message: "update user success",
-	})
+	c.JSON(http.StatusOK, web.NewStatusOKMessage("update user success"))
 }
 
 func (u *userControllerImpl) Delete(c *gin.Context) {
@@ -118,11 +106,7 @@ func (u *userControllerImpl) Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponseMessage{
-		Code:    http.StatusOK,
-		Status:  "status ok",
-		Message: "delete user success",
-	})
+	c.JSON(http.StatusOK, web.NewStatusOKMessage("delete user success"))
 }
 
 func (u *userControllerImpl) GetAll(c *gin.Context) {
@@ -132,12 +116,7 @@ func (u *userControllerImpl) GetAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponseData{
-		Code:    http.StatusOK,
-		Status:  "status ok",
-		Message: "get all user success",
-		Data:    users,
-	})
+	c.JSON(http.StatusOK, web.NewStatusOKData("get all user success", users))
 }
 
 func (u *userControllerImpl) GetByUsername(c *gin.Context) {
@@ -148,10 +127,5 @@ func (u *userControllerImpl) GetByUsername(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponseData{
-		Code:    http.StatusOK,
-		Status:  "status ok",
-		Message: "get user success",
-		Data:    user,
-	})
+	c.JSON(http.StatusOK, web.NewStatusOKData("get user success", user))
 }

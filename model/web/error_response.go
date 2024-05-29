@@ -2,19 +2,6 @@ package web
 
 import "net/http"
 
-type SuccessResponseData struct {
-	Code    int    `json:"code"`
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Data    any    `json:"data"`
-}
-
-type SuccessResponseMessage struct {
-	Code    int    `json:"code"`
-	Status  string `json:"status"`
-	Message string `json:"message"`
-}
-
 type ErrorResponse interface {
 	Code() int
 	Status() string
