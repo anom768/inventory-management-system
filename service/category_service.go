@@ -4,7 +4,6 @@ import (
 	"inventory-management-system/model/domain"
 	"inventory-management-system/model/web"
 	"inventory-management-system/repository"
-	"net/http"
 )
 
 type CategoryService interface {
@@ -27,54 +26,34 @@ func NewCategoryService(handleRepository repository.HandlerRepository) CategoryS
 func (c *categoryServiceImpl) Add(categoryAddRequest *web.CategoryAddRequest) web.ErrorResponse {
 	result := c.CheckAvailable(categoryAddRequest.Name)
 	if result {
-		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "category already exists",
-		}
+		return web.NewBadRequestError("category already exists")
 	}
 
 	err := c.HandlerRepository.Add(&domain.Categories{
 		Name: categoryAddRequest.Name,
 	})
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
-	return web.ErrorResponse{}
+	return nil
 }
 
 func (c *categoryServiceImpl) Update(categoryUpdateRequest web.CategoryUpdateRequest) web.ErrorResponse {
 	ok := c.CheckAvailable(categoryUpdateRequest.Name)
 	if ok {
-		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "category already exists",
-		}
+		return web.NewBadRequestError("category already exists")
 	}
 
 	category := domain.Categories{}
 	err := c.HandlerRepository.GetByID(categoryUpdateRequest.ID, &category)
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "category id not exists",
-		}
+		return web.NewBadRequestError("category id not exists")
 	}
 
 	result := c.CheckAvailable(category.Name)
 	if !result {
-		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "category name exists",
-		}
+		return web.NewBadRequestError("category name exists")
 	}
 
 	err = c.HandlerRepository.UpdateByID(categoryUpdateRequest.ID, &domain.Categories{
@@ -82,73 +61,49 @@ func (c *categoryServiceImpl) Update(categoryUpdateRequest web.CategoryUpdateReq
 		Name: categoryUpdateRequest.Name,
 	})
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
-	return web.ErrorResponse{}
+	return nil
 }
 
 func (c *categoryServiceImpl) Delete(categoryID int) web.ErrorResponse {
 	category := domain.Categories{}
 	err := c.HandlerRepository.GetByID(categoryID, &category)
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "category id not exists",
-		}
+		return web.NewBadRequestError("category id not exists")
 	}
 
 	err = c.HandlerRepository.DeleteByID(categoryID, &domain.Categories{})
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
-	return web.ErrorResponse{}
+	return nil
 }
 
 func (c *categoryServiceImpl) GetAll() ([]domain.Categories, web.ErrorResponse) {
 	categories := []domain.Categories{}
 	err := c.HandlerRepository.GetAll(&categories)
 	if err != nil {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return nil, web.NewInternalServerErrorError(err.Error())
 	}
 
 	if len(categories) == 0 {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status not found",
-			Message: "category not found",
-		}
+		return nil, web.NewNotFoundError("category not found")
 	}
 
-	return categories, web.ErrorResponse{}
+	return categories, nil
 }
 
 func (c *categoryServiceImpl) GetByID(categoryID int) (domain.Categories, web.ErrorResponse) {
 	category := domain.Categories{}
 	err := c.HandlerRepository.GetByID(categoryID, &category)
 	if err != nil {
-		return domain.Categories{}, web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return domain.Categories{}, web.NewInternalServerErrorError(err.Error())
 	}
 
-	return category, web.ErrorResponse{}
+	return category, nil
 }
 
 func (c *categoryServiceImpl) CheckAvailable(name string) bool {

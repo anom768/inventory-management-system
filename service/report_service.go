@@ -4,7 +4,6 @@ import (
 	"inventory-management-system/model/domain"
 	"inventory-management-system/model/web"
 	"inventory-management-system/repository"
-	"net/http"
 )
 
 type ReportService interface {
@@ -24,41 +23,25 @@ func (r *reportServiceImpl) GetAllActivity() ([]domain.Activities, web.ErrorResp
 	activities := []domain.Activities{}
 	err := r.HandlerRepository.GetAll(&activities)
 	if err != nil {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
-			Message: err.Error(),
-		}
+		return nil, web.NewInternalServerErrorError(err.Error())
 	}
 
 	if len(activities) == 0 {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status not found",
-			Message: "report service is empty",
-		}
+		return nil, web.NewNotFoundError("report not found")
 	}
 
-	return activities, web.ErrorResponse{}
+	return activities, nil
 }
 
 func (r *reportServiceImpl) ReportStock(stockItem int) ([]domain.Items, web.ErrorResponse) {
 	items, err := r.HandlerRepository.ReportStock(stockItem)
 	if err != nil {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
-			Message: err.Error(),
-		}
+		return nil, web.NewInternalServerErrorError(err.Error())
 	}
 
 	if len(items) == 0 {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status not found",
-			Message: "report service is empty",
-		}
+		return nil, web.NewNotFoundError("report not found")
 	}
 
-	return items, web.ErrorResponse{}
+	return items, nil
 }
