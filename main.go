@@ -27,10 +27,10 @@ func main() {
 		panic(err)
 	}
 
-	//err = connection.AutoMigrate(domain.Users{}, domain.Sessions{}, domain.Items{}, domain.Categories{}, domain.Activities{})
-	//if err != nil {
-	//	panic(err)
-	//}
+	err = connection.AutoMigrate(domain.Users{}, domain.Sessions{}, domain.Items{}, domain.Categories{}, domain.Activities{})
+	if err != nil {
+		panic(err)
+	}
 
 	validate := *validator.New()
 	handleRepository := repository.NewHandlerRepository(connection)

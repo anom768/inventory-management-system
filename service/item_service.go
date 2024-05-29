@@ -8,9 +8,9 @@ import (
 )
 
 type ItemService interface {
-	Add(itemAddRequest web.ItemAddRequest) web.ErrorResponse
-	Update(itemUpdateRequest web.ItemUpdateRequest) web.ErrorResponse
-	Delete(itemID int) web.ErrorResponse
+	Add(itemAddRequest web.ItemAddRequest, username string) web.ErrorResponse
+	Update(itemUpdateRequest web.ItemUpdateRequest, username string) web.ErrorResponse
+	Delete(itemID int, username string) web.ErrorResponse
 	GetAll() ([]domain.Items, web.ErrorResponse)
 	GetByID(itemID int) (domain.Items, web.ErrorResponse)
 	CheckAvailable(name string) bool
@@ -24,7 +24,7 @@ func NewItemService(handlerRepository repository.HandlerRepository) ItemService 
 	return &itemServiceImpl{handlerRepository}
 }
 
-func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorResponse {
+func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest, username string) web.ErrorResponse {
 	category := domain.Categories{}
 	err := i.HandlerRepository.GetByID(itemAddRequest.CategoryID, &category)
 	if err != nil {
@@ -52,6 +52,7 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorRespon
 		Action:         "POST",
 		QuantityChange: item.Quantity,
 		Timestamp:      time.Now(),
+		PerformedBy:    username,
 	})
 	if err != nil {
 		return web.NewInternalServerErrorError(err.Error())
@@ -60,7 +61,7 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorRespon
 	return nil
 }
 
-func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.ErrorResponse {
+func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest, username string) web.ErrorResponse {
 	category := domain.Categories{}
 	err := i.HandlerRepository.GetByID(itemUpdateRequest.CategoryID, &category)
 	if err != nil {
@@ -106,6 +107,7 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.Er
 		Action:         "UPDATE",
 		QuantityChange: quantityChange,
 		Timestamp:      time.Now(),
+		PerformedBy:    username,
 	})
 	if err != nil {
 		return web.NewInternalServerErrorError(err.Error())
@@ -114,7 +116,7 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.Er
 	return nil
 }
 
-func (i *itemServiceImpl) Delete(itemID int) web.ErrorResponse {
+func (i *itemServiceImpl) Delete(itemID int, username string) web.ErrorResponse {
 	item := domain.Items{}
 	err := i.HandlerRepository.GetByID(itemID, &item)
 	if err != nil {
@@ -130,6 +132,7 @@ func (i *itemServiceImpl) Delete(itemID int) web.ErrorResponse {
 		Action:         "DELETE",
 		QuantityChange: 0,
 		Timestamp:      time.Now(),
+		PerformedBy:    username,
 	})
 	if err != nil {
 		return web.NewInternalServerErrorError(err.Error())
