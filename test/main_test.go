@@ -1614,12 +1614,12 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 						apiServer.ServeHTTP(recorder, request)
 
-						response := web.SuccessResponseMessage{}
+						response := web.NewStatusCreated("")
 						err = json.Unmarshal(recorder.Body.Bytes(), &response)
 						Expect(err).ShouldNot(HaveOccurred())
-						Expect(response.Code).To(Equal(http.StatusCreated))
-						Expect(response.Status).To(Equal("status created"))
-						Expect(response.Message).To(Equal("register user success"))
+						Expect(response.Code()).To(Equal(http.StatusCreated))
+						Expect(response.Status()).To(Equal("status created"))
+						Expect(response.Message()).To(Equal("register user success"))
 
 						err = db.Reset(connection, "users")
 						err = db.Reset(connection, "sessions")
