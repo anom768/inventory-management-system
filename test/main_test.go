@@ -30,6 +30,7 @@ func login(mux *gin.Engine, handleRepository repository.HandlerRepository) *http
 		FullName: "testing",
 		Username: "testing",
 		Password: pwd,
+		Role:     "admin",
 	})
 
 	loginR := web.UserLoginRequest{
