@@ -62,7 +62,7 @@ func NewStatusCreated(message string) SuccessResponseMessage {
 }
 
 func NewStatusOKMessage(message string) SuccessResponseMessage {
-	return &successResponseData{
+	return &successResponseMessage{
 		ResCode:    http.StatusOK,
 		ResStatus:  "status ok",
 		ResMessage: message,

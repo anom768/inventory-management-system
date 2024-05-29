@@ -11,6 +11,7 @@ func UserRouter(apiServer *gin.Engine, userController controller.UserController)
 	user.POST("/login", userController.Login)
 
 	user.Use(middleware.Auth())
+	user.Use(middleware.AdminOnly())
 	user.POST("/users", userController.Register)
 	user.GET("/users", userController.GetAll)
 	user.GET("/users/:username", userController.GetByUsername)

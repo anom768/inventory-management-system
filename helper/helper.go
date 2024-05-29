@@ -39,7 +39,7 @@ func RegisterAdmin(handleRepository repository.HandlerRepository) {
 
 	err = handleRepository.Add(&domain.Users{
 		FullName: "Administrator",
-		Username: "admin",
+		Username: "administrator",
 		Password: pwd,
 		Role:     "admin",
 	})

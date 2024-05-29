@@ -10,9 +10,7 @@ import (
 
 func Auth() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
-		// TODO: answer here
 		sessionToken, err := ctx.Cookie("session_token")
-
 		if err != nil || sessionToken == "" {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, web.NewUnauthorizedError("session token is empty"))
 			return
@@ -32,8 +30,21 @@ func Auth() gin.HandlerFunc {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, web.NewUnauthorizedError("token is invalid"))
 			return
 		}
-
+		
 		ctx.Set("username", tokenClaims.Username)
+		ctx.Set("role", tokenClaims.Role)
 		ctx.Next()
 	})
+}
+
+func AdminOnly() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		role, exists := ctx.Get("role")
+		if !exists || role != "admin" {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, web.NewUnauthorizedError("user is not admin"))
+			return
+		}
+
+		ctx.Next()
+	}
 }
