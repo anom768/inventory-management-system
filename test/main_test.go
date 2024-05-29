@@ -674,7 +674,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						ItemID:         1,
 						Action:         "POST",
 						QuantityChange: 5,
-						PerformedBy:    1,
+						PerformedBy:    "admin",
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
@@ -689,7 +689,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						ItemID:         1,
 						Action:         "POST",
 						QuantityChange: 5,
-						PerformedBy:    1,
+						PerformedBy:    "admin",
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
@@ -697,7 +697,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 						ItemID:         2,
 						Action:         "POST",
 						QuantityChange: -2,
-						PerformedBy:    1,
+						PerformedBy:    "admin",
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
@@ -1318,7 +1318,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Price:         500.00,
 							Specification: "RTX 3060",
 						}
-						errResponse := itemService.Add(request)
+						errResponse := itemService.Add(request, "admin")
 						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						item := model.Items{}
@@ -1349,7 +1349,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Price:         500.00,
 							Specification: "RTX 3060",
 						}
-						errResponse := itemService.Add(request)
+						errResponse := itemService.Add(request, "admin")
 						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						item, errResponse := itemService.GetByID(1)
@@ -1390,7 +1390,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Price:         500.00,
 							Specification: "RTX 3060",
 						}
-						errResponse := itemService.Add(request)
+						errResponse := itemService.Add(request, "admin")
 						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						request2 := web.ItemAddRequest{
@@ -1400,7 +1400,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Price:         500.00,
 							Specification: "RTX 3060",
 						}
-						errResponse = itemService.Add(request2)
+						errResponse = itemService.Add(request2, "admin")
 						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						item, errResponse := itemService.GetAll()
@@ -1437,10 +1437,10 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Price:         500.00,
 							Specification: "RTX 3060",
 						}
-						errResponse := itemService.Add(request)
+						errResponse := itemService.Add(request, "admin")
 						Expect(errResponse).ShouldNot(HaveOccurred())
 
-						errResponse = itemService.Delete(1)
+						errResponse = itemService.Delete(1, "admin")
 						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						item, errResponse := itemService.GetByID(1)
@@ -1454,7 +1454,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 
 				When("delete not existing item data", func() {
 					It("should return error", func() {
-						errResponse := itemService.Delete(1)
+						errResponse := itemService.Delete(1, "admin")
 						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "items")
@@ -1473,7 +1473,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Price:         500.00,
 							Specification: "",
 						}
-						errResponse := itemService.Update(request)
+						errResponse := itemService.Update(request, "admin")
 						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "items")
@@ -1491,7 +1491,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Price:         500.00,
 							Specification: "",
 						}
-						errResponse := itemService.Update(request)
+						errResponse := itemService.Update(request, "admin")
 						Expect(errResponse).ToNot(Equal(nil))
 
 						err = db.Reset(connection, "items")
@@ -1511,7 +1511,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Price:         500.00,
 							Specification: "RTX 3060",
 						}
-						errResponse := itemService.Add(request)
+						errResponse := itemService.Add(request, "admin")
 						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						update := web.ItemUpdateRequest{
@@ -1522,7 +1522,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Price:         5000.00,
 							Specification: "RTX 3060 new",
 						}
-						errResponse = itemService.Update(update)
+						errResponse = itemService.Update(update, "admin")
 						Expect(errResponse).ShouldNot(HaveOccurred())
 
 						item, errResponse := itemService.GetByID(1)
@@ -1555,7 +1555,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Action:         "PUT",
 							QuantityChange: 5,
 							Timestamp:      time.Now(),
-							PerformedBy:    1,
+							PerformedBy:    "admin",
 						}
 						err := handlerRepository.Add(&request)
 						Expect(err).ShouldNot(HaveOccurred())
@@ -1565,7 +1565,7 @@ var _ = Describe("Digital Inventory Management API", func() {
 							Action:         "PUT",
 							QuantityChange: 5,
 							Timestamp:      time.Now(),
-							PerformedBy:    1,
+							PerformedBy:    "admin",
 						}
 						err = handlerRepository.Add(&request2)
 						Expect(err).ShouldNot(HaveOccurred())
