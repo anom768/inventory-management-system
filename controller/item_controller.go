@@ -34,17 +34,13 @@ func (i *itemControllerImpl) Add(c *gin.Context) {
 	}
 
 	if err := i.Validate.Struct(&itemAddRequest); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "validation error: " + err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("validation error: "+err.Error()))
 		return
 	}
 
 	errResponse := i.ItemService.Add(itemAddRequest)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -58,11 +54,7 @@ func (i *itemControllerImpl) Add(c *gin.Context) {
 func (i *itemControllerImpl) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("itemID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "invalid id",
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("invalid id"))
 		return
 	}
 
@@ -73,17 +65,13 @@ func (i *itemControllerImpl) Update(c *gin.Context) {
 
 	itemUpdateRequest.ID = id
 	if err := i.Validate.Struct(&itemUpdateRequest); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "validation error: " + err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("validation error: "+err.Error()))
 		return
 	}
 
 	errResponse := i.ItemService.Update(itemUpdateRequest)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -97,17 +85,13 @@ func (i *itemControllerImpl) Update(c *gin.Context) {
 func (i *itemControllerImpl) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("itemID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "invalid id",
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("invalid id"))
 		return
 	}
 
 	errResponse := i.ItemService.Delete(id)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -121,17 +105,13 @@ func (i *itemControllerImpl) Delete(c *gin.Context) {
 func (i *itemControllerImpl) GetByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("itemID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "invalid id",
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("invalid id"))
 		return
 	}
 
 	item, errResponse := i.ItemService.GetByID(id)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -145,8 +125,8 @@ func (i *itemControllerImpl) GetByID(c *gin.Context) {
 
 func (i *itemControllerImpl) GetAll(c *gin.Context) {
 	items, errResponse := i.ItemService.GetAll()
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 

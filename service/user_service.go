@@ -6,7 +6,6 @@ import (
 	"inventory-management-system/model/domain"
 	"inventory-management-system/model/web"
 	"inventory-management-system/repository"
-	"net/http"
 	"time"
 )
 
@@ -32,19 +31,11 @@ func NewUserService(handlerRepository repository.HandlerRepository) UserService 
 func (u *userServiceImpl) Register(userRegisterRequest *web.UserRegisterRequest) web.ErrorResponse {
 	hasPassword, err := helper.HashPassword(userRegisterRequest.Password)
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
-			Message: "failed to hash password",
-		}
+		return web.NewInternalServerErrorError("failed to hash password")
 	}
 
 	if u.CheckAvailable(userRegisterRequest.Username) {
-		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "username is already taken",
-		}
+		return web.NewBadRequestError("username is already taken")
 	}
 
 	err = u.HandlerRepository.Add(&domain.Users{
@@ -54,34 +45,22 @@ func (u *userServiceImpl) Register(userRegisterRequest *web.UserRegisterRequest)
 		Role:     userRegisterRequest.Role,
 	})
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
-	return web.ErrorResponse{}
+	return nil
 }
 
 func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (*string, web.ErrorResponse) {
 	user := domain.Users{}
 	err := u.HandlerRepository.GetByUsername(userLoginRequest.Username, &user)
 	if err != nil {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status not found",
-			Message: "user not found",
-		}
+		return nil, web.NewNotFoundError("user not found")
 	}
 
 	result := helper.CheckPasswordHash(userLoginRequest.Password, user.Password)
 	if !result {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "username or password is wrong",
-		}
+		return nil, web.NewBadRequestError("invalid username or password")
 	}
 
 	expirationTime := time.Now().Add(20 * time.Minute)
@@ -95,11 +74,7 @@ func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (*string
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := t.SignedString(domain.JwtKey)
 	if err != nil {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
-			Message: err.Error(),
-		}
+		return nil, web.NewInternalServerErrorError(err.Error())
 	}
 
 	session := domain.Sessions{
@@ -110,14 +85,10 @@ func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (*string
 
 	err = u.HandlerRepository.Add(&session)
 	if err != nil {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
-			Message: err.Error(),
-		}
+		return nil, web.NewInternalServerErrorError(err.Error())
 	}
 
-	return &tokenString, web.ErrorResponse{}
+	return &tokenString, nil
 }
 
 func (u *userServiceImpl) Logout() web.ErrorResponse {
@@ -127,20 +98,12 @@ func (u *userServiceImpl) Logout() web.ErrorResponse {
 
 func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) web.ErrorResponse {
 	if !u.CheckAvailable(userUpdateRequest.Username) {
-		return web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status bad request",
-			Message: "username is not exist",
-		}
+		return web.NewNotFoundError("user not found")
 	}
 
 	hasPassword, err := helper.HashPassword(userUpdateRequest.Password)
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
-			Message: "failed to hash password",
-		}
+		return web.NewInternalServerErrorError("failed to hash password")
 	}
 
 	err = u.HandlerRepository.UpdateByUsername(userUpdateRequest.Username, &domain.Users{
@@ -150,76 +113,52 @@ func (u *userServiceImpl) Update(userUpdateRequest web.UserUpdateRequest) web.Er
 		Role:     userUpdateRequest.Role,
 	})
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
-	return web.ErrorResponse{}
+	return nil
 }
 
 func (u *userServiceImpl) Delete(username string) web.ErrorResponse {
 	if !u.CheckAvailable(username) {
-		return web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status bad request",
-			Message: "username is not exist",
-		}
+		return web.NewNotFoundError("user not found")
 	}
 
 	err := u.HandlerRepository.DeleteByUsername(username, &domain.Users{})
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
-	return web.ErrorResponse{}
+	return nil
 }
 
 func (u *userServiceImpl) GetAll() ([]domain.Users, web.ErrorResponse) {
 	users := []domain.Users{}
 	err := u.HandlerRepository.GetAll(&users)
 	if err != nil {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "status internal server error",
-			Message: err.Error(),
-		}
+		return nil, web.NewInternalServerErrorError(err.Error())
 	}
 
 	if len(users) == 0 {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status not found",
-			Message: "users not found",
-		}
+		return nil, web.NewNotFoundError("user not found")
 	}
 
 	for i, _ := range users {
 		users[i].Password = "-"
 	}
 
-	return users, web.ErrorResponse{}
+	return users, nil
 }
 
 func (u *userServiceImpl) GetByUsername(username string) (domain.Users, web.ErrorResponse) {
 	user := domain.Users{}
 	err := u.HandlerRepository.GetByUsername(username, &user)
 	if err != nil {
-		return user, web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status not found",
-			Message: err.Error(),
-		}
+		return user, web.NewNotFoundError("user not found")
 	}
 
 	user.Password = "-"
-	return user, web.ErrorResponse{}
+	return user, nil
 }
 
 func (u *userServiceImpl) CheckAvailable(username string) bool {

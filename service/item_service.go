@@ -4,7 +4,6 @@ import (
 	"inventory-management-system/model/domain"
 	"inventory-management-system/model/web"
 	"inventory-management-system/repository"
-	"net/http"
 	"time"
 )
 
@@ -29,19 +28,11 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorRespon
 	category := domain.Categories{}
 	err := i.HandlerRepository.GetByID(itemAddRequest.CategoryID, &category)
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status not found",
-			Message: "category id not found",
-		}
+		return web.NewNotFoundError("category id not found")
 	}
 
 	if ok := i.CheckAvailable(itemAddRequest.Name); ok {
-		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "item name is already in use",
-		}
+		return web.NewBadRequestError("item name is already in use")
 	}
 
 	item := domain.Items{
@@ -53,11 +44,7 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorRespon
 	}
 	err = i.HandlerRepository.Add(&item)
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
 	err = i.HandlerRepository.Add(&domain.Activities{
@@ -67,46 +54,30 @@ func (i *itemServiceImpl) Add(itemAddRequest web.ItemAddRequest) web.ErrorRespon
 		Timestamp:      time.Now(),
 	})
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
-	return web.ErrorResponse{}
+	return nil
 }
 
 func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.ErrorResponse {
 	category := domain.Categories{}
 	err := i.HandlerRepository.GetByID(itemUpdateRequest.CategoryID, &category)
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status not found",
-			Message: "category id not found",
-		}
+		return web.NewNotFoundError("category id not found")
 	}
 
 	itemDB := domain.Items{}
 	err = i.HandlerRepository.GetByID(itemUpdateRequest.ID, &itemDB)
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status not found",
-			Message: "item id not found",
-		}
+		return web.NewNotFoundError("item id not found")
 	}
 
 	if itemDB.ID == itemUpdateRequest.ID && itemDB.Name == itemUpdateRequest.Name {
 
 	} else {
 		if ok := i.CheckAvailable(itemUpdateRequest.Name); ok {
-			return web.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Status:  "status bad request",
-				Message: "item name is already in use",
-			}
+			return web.NewBadRequestError("item name is already in use")
 		}
 	}
 
@@ -120,11 +91,7 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.Er
 	}
 	err = i.HandlerRepository.UpdateByID(itemUpdateRequest.ID, &item)
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
 	var quantityChange int
@@ -141,33 +108,21 @@ func (i *itemServiceImpl) Update(itemUpdateRequest web.ItemUpdateRequest) web.Er
 		Timestamp:      time.Now(),
 	})
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
-	return web.ErrorResponse{}
+	return nil
 }
 
 func (i *itemServiceImpl) Delete(itemID int) web.ErrorResponse {
 	item := domain.Items{}
 	err := i.HandlerRepository.GetByID(itemID, &item)
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "item id not found",
-		}
+		return web.NewBadRequestError("item id not found")
 	}
 
 	if err := i.HandlerRepository.DeleteByID(itemID, domain.Items{}); err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
 	err = i.HandlerRepository.Add(&domain.Activities{
@@ -177,50 +132,34 @@ func (i *itemServiceImpl) Delete(itemID int) web.ErrorResponse {
 		Timestamp:      time.Now(),
 	})
 	if err != nil {
-		return web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return web.NewInternalServerErrorError(err.Error())
 	}
 
-	return web.ErrorResponse{}
+	return nil
 }
 
 func (i *itemServiceImpl) GetAll() ([]domain.Items, web.ErrorResponse) {
 	items := []domain.Items{}
 	err := i.HandlerRepository.GetAll(&items)
 	if err != nil {
-		return nil, web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return nil, web.NewInternalServerErrorError(err.Error())
 	}
 
 	if len(items) == 0 {
-		return items, web.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Status:  "status not found",
-			Message: "item not found",
-		}
+		return items, web.NewNotFoundError("item not found")
 	}
 
-	return items, web.ErrorResponse{}
+	return items, nil
 }
 
 func (i *itemServiceImpl) GetByID(itemID int) (domain.Items, web.ErrorResponse) {
 	item := domain.Items{}
 	err := i.HandlerRepository.GetByID(itemID, &item)
 	if err != nil {
-		return domain.Items{}, web.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Status:  "internal server error",
-			Message: err.Error(),
-		}
+		return domain.Items{}, web.NewInternalServerErrorError(err.Error())
 	}
 
-	return item, web.ErrorResponse{}
+	return item, nil
 }
 
 func (i *itemServiceImpl) CheckAvailable(name string) bool {

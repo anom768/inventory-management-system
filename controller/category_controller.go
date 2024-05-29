@@ -35,17 +35,13 @@ func (cc *categoryControllerImpl) Add(c *gin.Context) {
 
 	err := cc.Validate.Struct(categoryAddRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "validation error: " + err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("validation error: "+err.Error()))
 		return
 	}
 
 	errResponse := cc.CategoryService.Add(&categoryAddRequest)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -59,11 +55,7 @@ func (cc *categoryControllerImpl) Add(c *gin.Context) {
 func (cc *categoryControllerImpl) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("categoryID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "invalid id",
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("invalid id"))
 		return
 	}
 
@@ -75,17 +67,13 @@ func (cc *categoryControllerImpl) Update(c *gin.Context) {
 
 	err = cc.Validate.Struct(categoryUpdateRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "validation error: " + err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("validation error: "+err.Error()))
 		return
 	}
 
 	errResponse := cc.CategoryService.Update(categoryUpdateRequest)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -99,17 +87,13 @@ func (cc *categoryControllerImpl) Update(c *gin.Context) {
 func (cc *categoryControllerImpl) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("categoryID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "invalid id",
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("invalid id"))
 		return
 	}
 
 	errResponse := cc.CategoryService.Delete(id)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -122,8 +106,8 @@ func (cc *categoryControllerImpl) Delete(c *gin.Context) {
 
 func (cc *categoryControllerImpl) GetAll(c *gin.Context) {
 	categories, errResponse := cc.CategoryService.GetAll()
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -138,17 +122,13 @@ func (cc *categoryControllerImpl) GetAll(c *gin.Context) {
 func (cc *categoryControllerImpl) GetByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("categoryID"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "invalid id",
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("invalid id"))
 		return
 	}
 
 	category, errResponse := cc.CategoryService.GetByID(id)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 

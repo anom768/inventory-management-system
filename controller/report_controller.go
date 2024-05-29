@@ -24,8 +24,8 @@ func NewReportController(reportService service.ReportService) ReportController {
 
 func (r *reportControllerImpl) GetAllActivity(c *gin.Context) {
 	activities, errResponse := r.ReportService.GetAllActivity()
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -40,17 +40,13 @@ func (r *reportControllerImpl) GetAllActivity(c *gin.Context) {
 func (r *reportControllerImpl) ReportStock(c *gin.Context) {
 	totalStock, err := strconv.Atoi(c.Param("itemStock"))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "invalid item stock",
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("invalid item stock"))
 		return
 	}
 
 	items, errResponse := r.ReportService.ReportStock(totalStock)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
