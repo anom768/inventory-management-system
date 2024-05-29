@@ -45,11 +45,7 @@ func (cc *categoryControllerImpl) Add(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, web.SuccessResponseMessage{
-		Code:    http.StatusCreated,
-		Status:  "status created",
-		Message: "success add category",
-	})
+	c.JSON(http.StatusCreated, web.NewStatusCreated("success add category"))
 }
 
 func (cc *categoryControllerImpl) Update(c *gin.Context) {
@@ -77,11 +73,7 @@ func (cc *categoryControllerImpl) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponseMessage{
-		Code:    http.StatusOK,
-		Status:  "status ok",
-		Message: "success update category",
-	})
+	c.JSON(http.StatusOK, web.NewStatusOKMessage("success update category"))
 }
 
 func (cc *categoryControllerImpl) Delete(c *gin.Context) {
@@ -97,11 +89,7 @@ func (cc *categoryControllerImpl) Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponseMessage{
-		Code:    http.StatusOK,
-		Status:  "status ok",
-		Message: "success delete category",
-	})
+	c.JSON(http.StatusOK, web.NewStatusOKMessage("success delete category"))
 }
 
 func (cc *categoryControllerImpl) GetAll(c *gin.Context) {
@@ -111,12 +99,7 @@ func (cc *categoryControllerImpl) GetAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponseData{
-		Code:    http.StatusOK,
-		Status:  "status ok",
-		Message: "success get all category",
-		Data:    categories,
-	})
+	c.JSON(http.StatusOK, web.NewStatusOKData("success get all category", categories))
 }
 
 func (cc *categoryControllerImpl) GetByID(c *gin.Context) {
@@ -132,10 +115,5 @@ func (cc *categoryControllerImpl) GetByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, web.SuccessResponseData{
-		Code:    http.StatusOK,
-		Status:  "status ok",
-		Message: "success get category",
-		Data:    category,
-	})
+	c.JSON(http.StatusOK, web.NewStatusOKData("success get category", category))
 }
