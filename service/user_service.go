@@ -66,6 +66,7 @@ func (u *userServiceImpl) Login(userLoginRequest *web.UserLoginRequest) (*string
 	expirationTime := time.Now().Add(20 * time.Minute)
 	claims := &domain.JwtCustomClaims{
 		Username: user.Username,
+		Role:     user.Role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
