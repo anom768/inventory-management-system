@@ -25,11 +25,7 @@ func CheckPasswordHash(password string, hash string) bool {
 func ReadFromRequestBody(c *gin.Context, v any) error {
 	err := c.ShouldBindJSON(v)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "invalid body request",
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("invalid body request"))
 		return err
 	}
 	return nil

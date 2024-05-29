@@ -14,11 +14,7 @@ func Auth() gin.HandlerFunc {
 		sessionToken, err := ctx.Cookie("session_token")
 
 		if err != nil || sessionToken == "" {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{
-				Code:    http.StatusUnauthorized,
-				Status:  "status unauthorized",
-				Message: "session token is empty",
-			})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, web.NewUnauthorizedError("session token is empty"))
 			return
 		}
 
@@ -28,20 +24,12 @@ func Auth() gin.HandlerFunc {
 		})
 
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Status:  "status bad request",
-				Message: "parse token failed",
-			})
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("parse token failed"))
 			return
 		}
 
 		if !token.Valid {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{
-				Code:    http.StatusUnauthorized,
-				Status:  "status unauthorized",
-				Message: "token is invalid",
-			})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, web.NewUnauthorizedError("token is invalid"))
 			return
 		}
 

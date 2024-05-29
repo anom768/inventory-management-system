@@ -36,17 +36,13 @@ func (u *userControllerImpl) Register(c *gin.Context) {
 
 	err := u.Validate.Struct(userRegisterRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "validation error: " + err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("validation error: "+err.Error()))
 		return
 	}
 
 	errResponse := u.UserService.Register(&userRegisterRequest)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -65,17 +61,13 @@ func (u *userControllerImpl) Login(c *gin.Context) {
 
 	err := u.Validate.Struct(userLoginRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "validation error: " + err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("validation error: "+err.Error()))
 		return
 	}
 
 	tokenString, errResponse := u.UserService.Login(&userLoginRequest)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -101,17 +93,13 @@ func (u *userControllerImpl) Update(c *gin.Context) {
 
 	err := u.Validate.Struct(userUpdateRequest)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Status:  "status bad request",
-			Message: "validation error: " + err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, web.NewBadRequestError("validation error: "+err.Error()))
 		return
 	}
 
 	errResponse := u.UserService.Update(userUpdateRequest)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -125,8 +113,8 @@ func (u *userControllerImpl) Update(c *gin.Context) {
 func (u *userControllerImpl) Delete(c *gin.Context) {
 	username := c.Param("username")
 	errResponse := u.UserService.Delete(username)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -139,8 +127,8 @@ func (u *userControllerImpl) Delete(c *gin.Context) {
 
 func (u *userControllerImpl) GetAll(c *gin.Context) {
 	users, errResponse := u.UserService.GetAll()
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
@@ -155,8 +143,8 @@ func (u *userControllerImpl) GetAll(c *gin.Context) {
 func (u *userControllerImpl) GetByUsername(c *gin.Context) {
 	username := c.Param("username")
 	user, errResponse := u.UserService.GetByUsername(username)
-	if errResponse.Code != 0 {
-		c.AbortWithStatusJSON(errResponse.Code, errResponse)
+	if errResponse != nil {
+		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
 	}
 
