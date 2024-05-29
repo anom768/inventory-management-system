@@ -38,7 +38,8 @@ func (i *itemControllerImpl) Add(c *gin.Context) {
 		return
 	}
 
-	errResponse := i.ItemService.Add(itemAddRequest)
+	username, _ := c.Get("username")
+	errResponse := i.ItemService.Add(itemAddRequest, username.(string))
 	if errResponse != nil {
 		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
@@ -65,7 +66,8 @@ func (i *itemControllerImpl) Update(c *gin.Context) {
 		return
 	}
 
-	errResponse := i.ItemService.Update(itemUpdateRequest)
+	username, _ := c.Get("username")
+	errResponse := i.ItemService.Update(itemUpdateRequest, username.(string))
 	if errResponse != nil {
 		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
@@ -81,7 +83,8 @@ func (i *itemControllerImpl) Delete(c *gin.Context) {
 		return
 	}
 
-	errResponse := i.ItemService.Delete(id)
+	username, _ := c.Get("username")
+	errResponse := i.ItemService.Delete(id, username.(string))
 	if errResponse != nil {
 		c.AbortWithStatusJSON(errResponse.Code(), errResponse)
 		return
